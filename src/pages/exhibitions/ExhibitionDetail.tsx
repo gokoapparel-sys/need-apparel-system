@@ -456,7 +456,13 @@ const ExhibitionDetail: React.FC = () => {
                   管理者用PDF出力
                 </button>
                 <button
-                  onClick={() => navigate(`/exhibitions/${id}/landing`)}
+                  onClick={() => {
+                    if (exhibition.description && exhibition.description.startsWith('/')) {
+                      navigate(exhibition.description)
+                    } else {
+                      navigate(`/exhibitions/${id}/landing`)
+                    }
+                  }}
                   className="inline-flex items-center px-5 py-2.5 bg-purple-700 text-white font-medium rounded-lg hover:bg-purple-800 transition-all shadow-sm"
                 >
                   展示会LP
