@@ -1,0 +1,992 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>アパレル商品管理システム 操作マニュアル</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', 'Yu Gothic', 'Meiryo', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            overflow: hidden;
+        }
+
+        .slide-container {
+            width: 100vw;
+            height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+        }
+
+        .slide {
+            display: none;
+            width: 90%;
+            max-width: 1200px;
+            height: 85vh;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            padding: 60px 80px;
+            overflow-y: auto;
+            animation: slideIn 0.5s ease-out;
+        }
+
+        .slide.active {
+            display: block;
+        }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        h1 {
+            font-size: 3.5em;
+            color: #667eea;
+            margin-bottom: 30px;
+            text-align: center;
+            font-weight: 700;
+        }
+
+        h2 {
+            font-size: 2.5em;
+            color: #667eea;
+            margin-bottom: 30px;
+            border-bottom: 4px solid #667eea;
+            padding-bottom: 15px;
+            font-weight: 600;
+        }
+
+        h3 {
+            font-size: 1.8em;
+            color: #764ba2;
+            margin: 30px 0 15px 0;
+            font-weight: 600;
+        }
+
+        p, li {
+            font-size: 1.3em;
+            line-height: 1.8;
+            color: #333;
+            margin-bottom: 15px;
+        }
+
+        ul, ol {
+            margin-left: 40px;
+            margin-bottom: 20px;
+        }
+
+        .subtitle {
+            font-size: 1.5em;
+            color: #666;
+            text-align: center;
+            margin-bottom: 40px;
+        }
+
+        .feature-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 25px;
+            margin: 30px 0;
+        }
+
+        .feature-box {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 25px;
+            border-radius: 12px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        }
+
+        .feature-box h3 {
+            color: white;
+            font-size: 1.5em;
+            margin: 0 0 12px 0;
+        }
+
+        .feature-box p {
+            color: rgba(255, 255, 255, 0.95);
+            font-size: 1.1em;
+            margin: 0;
+        }
+
+        .step-box {
+            background: #f8f9fa;
+            border-left: 5px solid #667eea;
+            padding: 20px 25px;
+            margin: 15px 0;
+            border-radius: 8px;
+        }
+
+        .step-number {
+            display: inline-block;
+            background: #667eea;
+            color: white;
+            width: 35px;
+            height: 35px;
+            line-height: 35px;
+            text-align: center;
+            border-radius: 50%;
+            font-weight: bold;
+            margin-right: 12px;
+        }
+
+        .warning-box {
+            background: #fff3cd;
+            border: 2px solid #ffc107;
+            border-radius: 8px;
+            padding: 20px;
+            margin: 20px 0;
+        }
+
+        .warning-box strong {
+            color: #856404;
+            font-size: 1.2em;
+        }
+
+        .tip-box {
+            background: #d1ecf1;
+            border: 2px solid #17a2b8;
+            border-radius: 8px;
+            padding: 20px;
+            margin: 20px 0;
+        }
+
+        .tip-box strong {
+            color: #0c5460;
+            font-size: 1.2em;
+        }
+
+        .navigation {
+            position: fixed;
+            bottom: 40px;
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            gap: 20px;
+            z-index: 1000;
+        }
+
+        .nav-btn {
+            background: white;
+            color: #667eea;
+            border: 2px solid #667eea;
+            padding: 15px 35px;
+            font-size: 1.1em;
+            border-radius: 50px;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-weight: 600;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+        }
+
+        .nav-btn:hover {
+            background: #667eea;
+            color: white;
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.3);
+        }
+
+        .nav-btn:disabled {
+            opacity: 0.3;
+            cursor: not-allowed;
+        }
+
+        .slide-counter {
+            position: fixed;
+            top: 30px;
+            right: 40px;
+            background: white;
+            color: #667eea;
+            padding: 12px 25px;
+            border-radius: 50px;
+            font-weight: 600;
+            font-size: 1.1em;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+        }
+
+        .toc-list {
+            list-style: none;
+            margin-left: 0;
+        }
+
+        .toc-list li {
+            padding: 15px 20px;
+            background: #f8f9fa;
+            margin: 10px 0;
+            border-radius: 8px;
+            border-left: 5px solid #667eea;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .toc-list li:hover {
+            background: #e9ecef;
+            transform: translateX(5px);
+        }
+
+        .badge {
+            display: inline-block;
+            background: #28a745;
+            color: white;
+            padding: 5px 12px;
+            border-radius: 20px;
+            font-size: 0.8em;
+            margin-left: 10px;
+            font-weight: 600;
+        }
+
+        .code-box {
+            background: #f8f9fa;
+            border: 1px solid #dee2e6;
+            border-radius: 8px;
+            padding: 15px 20px;
+            font-family: 'Courier New', monospace;
+            font-size: 1.1em;
+            margin: 15px 0;
+            color: #212529;
+        }
+
+        @media print {
+            .navigation, .slide-counter {
+                display: none;
+            }
+            .slide {
+                page-break-after: always;
+                display: block !important;
+                height: auto;
+                box-shadow: none;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="slide-counter">
+        <span id="current-slide">1</span> / <span id="total-slides">20</span>
+    </div>
+
+    <div class="slide-container">
+        <!-- スライド1: 表紙 -->
+        <div class="slide active">
+            <h1 style="margin-top: 150px;">📦 アパレル商品管理システム</h1>
+            <p class="subtitle">操作マニュアル</p>
+            <p class="subtitle" style="font-size: 1.2em; margin-top: 100px;">株式会社 互興</p>
+            <p class="subtitle" style="font-size: 1em;">Version 1.0</p>
+        </div>
+
+        <!-- スライド2: 目次 -->
+        <div class="slide">
+            <h2>📋 目次</h2>
+            <ol class="toc-list" style="list-style: decimal;">
+                <li>システム概要</li>
+                <li>ログイン方法</li>
+                <li>ダッシュボード</li>
+                <li>アイテム管理</li>
+                <li>生地マスタ</li>
+                <li>型紙マスタ</li>
+                <li>展示会カタログ</li>
+                <li>サンプル貸出管理</li>
+                <li>お客様ピックアップ</li>
+                <li>データ連携（CSV/Excel）</li>
+                <li>トラブルシューティング</li>
+            </ol>
+        </div>
+
+        <!-- スライド3: システム概要 -->
+        <div class="slide">
+            <h2>🎯 システム概要</h2>
+            <p>アパレル企業向けの商品・サンプル管理システム。アイテム、生地、型紙の一元管理から展示会カタログ出力、サンプル貸出管理まで対応。</p>
+
+            <div class="feature-grid">
+                <div class="feature-box">
+                    <h3>📦 アイテム管理</h3>
+                    <p>商品情報の登録・編集・検索、型紙との紐付け</p>
+                </div>
+                <div class="feature-box">
+                    <h3>🧵 生地マスタ</h3>
+                    <p>生地情報の一元管理とアイテムへの自動連携</p>
+                </div>
+                <div class="feature-box">
+                    <h3>📐 型紙マスタ</h3>
+                    <p>型紙・仕様書・展開図・CADファイルの管理</p>
+                </div>
+                <div class="feature-box">
+                    <h3>📄 展示会カタログ</h3>
+                    <p>PDF形式での自動生成（A4横向き）</p>
+                </div>
+                <div class="feature-box">
+                    <h3>📋 サンプル貸出</h3>
+                    <p>貸出・返却のシンプルな管理</p>
+                </div>
+                <div class="feature-box">
+                    <h3>🎯 ピックアップ</h3>
+                    <p>展示会での商品選定とWeb共有</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- スライド4: 対象ユーザー -->
+        <div class="slide">
+            <h2>👥 対象ユーザー</h2>
+
+            <div class="step-box">
+                <h3>👔 アパレル企画・営業担当者</h3>
+                <p>商品の登録、管理、展示会での活用</p>
+            </div>
+
+            <div class="step-box">
+                <h3>🎪 展示会運営スタッフ</h3>
+                <p>カタログ作成、ピックアップ管理</p>
+            </div>
+
+            <div class="step-box">
+                <h3>📏 生地・型紙管理担当者</h3>
+                <p>マスタデータの登録と維持管理</p>
+            </div>
+
+            <div class="step-box">
+                <h3>💼 経営層</h3>
+                <p>コスト分析、データの閲覧</p>
+            </div>
+        </div>
+
+        <!-- スライド5: ログイン方法 -->
+        <div class="slide">
+            <h2>🔐 ログイン方法</h2>
+
+            <div class="step-box">
+                <span class="step-number">1</span>
+                <strong>ブラウザでシステムにアクセス</strong>
+                <p style="margin-top: 10px;">Chrome、Edge、Safari などの最新ブラウザを使用してください。</p>
+            </div>
+
+            <div class="step-box">
+                <span class="step-number">2</span>
+                <strong>メールアドレスを入力</strong>
+                <p style="margin-top: 10px;">事前に登録されたメールアドレスを入力します。</p>
+            </div>
+
+            <div class="step-box">
+                <span class="step-number">3</span>
+                <strong>パスワードを入力</strong>
+                <p style="margin-top: 10px;">管理者から発行されたパスワードを入力します。</p>
+            </div>
+
+            <div class="step-box">
+                <span class="step-number">4</span>
+                <strong>「ログイン」ボタンをクリック</strong>
+                <p style="margin-top: 10px;">認証に成功するとダッシュボードが表示されます。</p>
+            </div>
+
+            <div class="warning-box">
+                <strong>⚠️ 注意事項</strong>
+                <p>パスワードは他人に教えないでください。定期的な変更を推奨します。</p>
+            </div>
+        </div>
+
+        <!-- スライド6: ダッシュボード -->
+        <div class="slide">
+            <h2>🏠 ダッシュボード</h2>
+            <p>ログイン後に表示されるホーム画面です。すべての機能へのアクセスポイントとなります。</p>
+
+            <h3>主要メニュー</h3>
+            <ul>
+                <li><strong>アイテム管理</strong> - 商品の登録・編集・検索</li>
+                <li><strong>生地マスタ</strong> - 生地情報の管理</li>
+                <li><strong>型紙マスタ</strong> - 型紙とPDFファイルの管理</li>
+                <li><strong>展示会カタログ</strong> - カタログの作成とPDF出力</li>
+                <li><strong>サンプル貸出</strong> - 貸出・返却の管理</li>
+                <li><strong>ピックアップ</strong> - お客様の商品選定管理</li>
+                <li><strong>画像アップロード</strong> - 共通画像の管理</li>
+            </ul>
+
+            <div class="tip-box">
+                <strong>💡 ヒント</strong>
+                <p>各カードをクリックすると該当機能の画面に移動します。左上のロゴをクリックするといつでもダッシュボードに戻れます。</p>
+            </div>
+        </div>
+
+        <!-- スライド7: アイテム管理（概要） -->
+        <div class="slide">
+            <h2>📦 アイテム管理</h2>
+            <p>商品情報を登録・管理する機能です。画像、価格、生地、型紙などの情報を一元管理できます。</p>
+
+            <h3>できること</h3>
+            <ul>
+                <li>商品の新規登録</li>
+                <li>商品情報の編集・削除</li>
+                <li>商品画像のアップロード（複数枚対応）</li>
+                <li>型紙との紐付け</li>
+                <li>名前・SKUでの検索</li>
+                <li>ステータス管理（有効/アーカイブ）</li>
+            </ul>
+
+            <h3>主要項目</h3>
+            <ul>
+                <li><strong>名前</strong> - 商品名（必須）</li>
+                <li><strong>アイテムNo.</strong> - SKU・品番（必須）</li>
+                <li><strong>色</strong> - カラー情報</li>
+                <li><strong>サイズ</strong> - サイズ展開</li>
+                <li><strong>価格</strong> - 販売価格（必須）</li>
+                <li><strong>型紙</strong> - 紐付ける型紙の選択</li>
+            </ul>
+        </div>
+
+        <!-- スライド8: アイテム管理（新規登録） -->
+        <div class="slide">
+            <h2>📦 アイテムの新規登録</h2>
+
+            <div class="step-box">
+                <span class="step-number">1</span>
+                <strong>アイテム一覧ページへ移動</strong>
+                <p style="margin-top: 10px;">ダッシュボードから「アイテム管理」をクリック</p>
+            </div>
+
+            <div class="step-box">
+                <span class="step-number">2</span>
+                <strong>「+ 新規作成」ボタンをクリック</strong>
+                <p style="margin-top: 10px;">画面右上のボタンを押します</p>
+            </div>
+
+            <div class="step-box">
+                <span class="step-number">3</span>
+                <strong>必須項目を入力</strong>
+                <p style="margin-top: 10px;">名前、アイテムNo.、価格は必須です</p>
+            </div>
+
+            <div class="step-box">
+                <span class="step-number">4</span>
+                <strong>画像をアップロード（任意）</strong>
+                <p style="margin-top: 10px;">複数枚の画像を選択可能（最大10MB/枚）</p>
+            </div>
+
+            <div class="step-box">
+                <span class="step-number">5</span>
+                <strong>型紙を選択（任意）</strong>
+                <p style="margin-top: 10px;">ドロップダウンから該当する型紙を選択</p>
+            </div>
+
+            <div class="step-box">
+                <span class="step-number">6</span>
+                <strong>「作成」ボタンをクリック</strong>
+                <p style="margin-top: 10px;">成功すると一覧ページに戻ります</p>
+            </div>
+        </div>
+
+        <!-- スライド9: アイテム管理（編集・削除） -->
+        <div class="slide">
+            <h2>📦 アイテムの編集・削除</h2>
+
+            <h3>編集手順</h3>
+            <div class="step-box">
+                <span class="step-number">1</span>
+                <strong>アイテム一覧から対象を選択</strong>
+                <p style="margin-top: 10px;">一覧表の行をクリック</p>
+            </div>
+
+            <div class="step-box">
+                <span class="step-number">2</span>
+                <strong>情報を編集</strong>
+                <p style="margin-top: 10px;">各項目を変更、画像の追加・削除も可能</p>
+            </div>
+
+            <div class="step-box">
+                <span class="step-number">3</span>
+                <strong>「更新」ボタンをクリック</strong>
+                <p style="margin-top: 10px;">変更内容が保存されます</p>
+            </div>
+
+            <h3>削除手順</h3>
+            <div class="step-box">
+                <span class="step-number">1</span>
+                <strong>編集画面で左下の「削除」ボタンをクリック</strong>
+            </div>
+
+            <div class="step-box">
+                <span class="step-number">2</span>
+                <strong>確認ダイアログで「OK」を選択</strong>
+                <p style="margin-top: 10px;">削除すると復元できませんのでご注意ください</p>
+            </div>
+
+            <div class="warning-box">
+                <strong>⚠️ 重要</strong>
+                <p>削除すると画像も含めてすべてのデータが削除されます。必要に応じてアーカイブ機能を使用してください。</p>
+            </div>
+        </div>
+
+        <!-- スライド10: 生地マスタ -->
+        <div class="slide">
+            <h2>🧵 生地マスタ</h2>
+            <p>生地情報を一元管理する機能です。アイテムと連携して生地情報を活用できます。</p>
+
+            <h3>登録項目</h3>
+            <ul>
+                <li><strong>生地品番</strong> - 生地の識別番号（必須）</li>
+                <li><strong>生地名</strong> - 生地の名称（必須）</li>
+                <li><strong>混率</strong> - 素材の混合率（必須、例：綿100%）</li>
+                <li><strong>生地値</strong> - 単価（円/m、必須）</li>
+                <li><strong>メーカー</strong> - 製造メーカー（必須）</li>
+                <li><strong>カテゴリ</strong> - 布帛/カット</li>
+                <li><strong>パターン</strong> - 無地/先染</li>
+                <li><strong>担当者ID</strong> - 管理担当者（自動入力）</li>
+            </ul>
+
+            <h3>検索・フィルター機能</h3>
+            <ul>
+                <li>生地品番、生地名、メーカーで検索</li>
+                <li>カテゴリ（布帛/カット）でフィルター</li>
+                <li>パターン（無地/先染）でフィルター</li>
+                <li>新しい順/古い順でソート</li>
+            </ul>
+        </div>
+
+        <!-- スライド11: 型紙マスタ -->
+        <div class="slide">
+            <h2>📐 型紙マスタ</h2>
+            <p>型紙と関連PDFファイルを管理する機能です。型紙・仕様書・展開図・CADファイルをアップロードできます。</p>
+
+            <h3>登録項目</h3>
+            <ul>
+                <li><strong>型紙No.</strong> - 型紙の識別番号（必須）</li>
+                <li><strong>型紙名</strong> - 型紙の名称（必須）</li>
+                <li><strong>担当者ID</strong> - 管理担当者（自動入力）</li>
+            </ul>
+
+            <h3>アップロード可能なファイル</h3>
+            <div class="feature-grid" style="grid-template-columns: 1fr 1fr;">
+                <div class="step-box">
+                    <h3>📄 型紙ファイル</h3>
+                    <p>PDF形式、最大20MB</p>
+                </div>
+                <div class="step-box">
+                    <h3>📋 仕様書</h3>
+                    <p>PDF形式、最大20MB</p>
+                </div>
+                <div class="step-box">
+                    <h3>🗺️ 展開図</h3>
+                    <p>PDF形式、最大20MB</p>
+                </div>
+                <div class="step-box">
+                    <h3>💾 型紙データ</h3>
+                    <p>DXF/AI/CDR/ZIP、最大50MB</p>
+                </div>
+            </div>
+
+            <div class="tip-box">
+                <strong>💡 ヒント</strong>
+                <p>型紙を先に作成してから、各種ファイルをアップロードします。ファイルは個別に削除・再アップロード可能です。</p>
+            </div>
+        </div>
+
+        <!-- スライド12: 型紙マスタ（アップロード手順） -->
+        <div class="slide">
+            <h2>📐 型紙ファイルのアップロード</h2>
+
+            <div class="step-box">
+                <span class="step-number">1</span>
+                <strong>型紙を作成</strong>
+                <p style="margin-top: 10px;">「+ 新規作成」から型紙No.と型紙名を入力して作成</p>
+            </div>
+
+            <div class="step-box">
+                <span class="step-number">2</span>
+                <strong>編集ページへ移動</strong>
+                <p style="margin-top: 10px;">作成後、自動的に編集ページが表示されます</p>
+            </div>
+
+            <div class="step-box">
+                <span class="step-number">3</span>
+                <strong>ファイル管理セクションを確認</strong>
+                <p style="margin-top: 10px;">型紙ファイル、仕様書、展開図、型紙データの4つのアップロード欄があります</p>
+            </div>
+
+            <div class="step-box">
+                <span class="step-number">4</span>
+                <strong>ファイルを選択してアップロード</strong>
+                <p style="margin-top: 10px;">各ファイルを選択すると自動的にアップロードが開始されます</p>
+            </div>
+
+            <div class="step-box">
+                <span class="step-number">5</span>
+                <strong>アップロード完了を確認</strong>
+                <p style="margin-top: 10px;">ファイル名とダウンロードリンクが表示されます</p>
+            </div>
+
+            <div class="warning-box">
+                <strong>⚠️ 注意</strong>
+                <p>型紙データファイル（CAD）以外はPDF形式のみ対応しています。ファイルサイズの制限にもご注意ください。</p>
+            </div>
+        </div>
+
+        <!-- スライド13: 展示会カタログ -->
+        <div class="slide">
+            <h2>📄 展示会カタログ</h2>
+            <p>展示会用のカタログをPDF形式で自動生成する機能です。商品情報を見やすくレイアウトします。</p>
+
+            <h3>機能概要</h3>
+            <ul>
+                <li>A4横向きのPDF自動生成</li>
+                <li>8/10/12アイテム/ページから選択可能</li>
+                <li>カテゴリ別のセクション分け</li>
+                <li>表紙・目次の自動生成</li>
+                <li>商品画像と基本情報を美しく配置</li>
+            </ul>
+
+            <h3>作成手順</h3>
+            <div class="step-box">
+                <span class="step-number">1</span>
+                <strong>展示会カタログページへ移動</strong>
+            </div>
+
+            <div class="step-box">
+                <span class="step-number">2</span>
+                <strong>「+ 新規作成」をクリック</strong>
+            </div>
+
+            <div class="step-box">
+                <span class="step-number">3</span>
+                <strong>展示会名、日程、場所を入力</strong>
+            </div>
+
+            <div class="step-box">
+                <span class="step-number">4</span>
+                <strong>カタログに含めるアイテムを選択</strong>
+            </div>
+
+            <div class="step-box">
+                <span class="step-number">5</span>
+                <strong>「PDF出力」ボタンでカタログを生成</strong>
+            </div>
+        </div>
+
+        <!-- スライド14: サンプル貸出管理 -->
+        <div class="slide">
+            <h2>📋 サンプル貸出管理</h2>
+            <p>サンプル商品の貸出・返却をシンプルに管理する機能です。</p>
+
+            <h3>貸出登録手順</h3>
+            <div class="step-box">
+                <span class="step-number">1</span>
+                <strong>貸出一覧ページへ移動</strong>
+            </div>
+
+            <div class="step-box">
+                <span class="step-number">2</span>
+                <strong>「+ 新規貸出」をクリック</strong>
+            </div>
+
+            <div class="step-box">
+                <span class="step-number">3</span>
+                <strong>貸出先、担当者、アイテムを選択</strong>
+            </div>
+
+            <div class="step-box">
+                <span class="step-number">4</span>
+                <strong>貸出日、返却予定日を入力</strong>
+            </div>
+
+            <div class="step-box">
+                <span class="step-number">5</span>
+                <strong>「登録」ボタンをクリック</strong>
+            </div>
+
+            <h3>返却処理</h3>
+            <div class="step-box">
+                <span class="step-number">1</span>
+                <strong>貸出中一覧から対象を選択</strong>
+            </div>
+
+            <div class="step-box">
+                <span class="step-number">2</span>
+                <strong>「返却」ボタンをクリック</strong>
+                <p style="margin-top: 10px;">ワンクリックで返却処理が完了します</p>
+            </div>
+        </div>
+
+        <!-- スライド15: お客様ピックアップ -->
+        <div class="slide">
+            <h2>🎯 お客様ピックアップ</h2>
+            <p>展示会でお客様が選定した商品を記録し、Web共有する機能です。</p>
+
+            <h3>ピックアップ作成手順</h3>
+            <div class="step-box">
+                <span class="step-number">1</span>
+                <strong>ピックアップ一覧へ移動</strong>
+            </div>
+
+            <div class="step-box">
+                <span class="step-number">2</span>
+                <strong>「+ 新規ピックアップ」をクリック</strong>
+            </div>
+
+            <div class="step-box">
+                <span class="step-number">3</span>
+                <strong>お客様名、会社名、展示会名を入力</strong>
+            </div>
+
+            <div class="step-box">
+                <span class="step-number">4</span>
+                <strong>選定したアイテムを追加</strong>
+                <p style="margin-top: 10px;">バーコードスキャンまたは手動選択が可能</p>
+            </div>
+
+            <div class="step-box">
+                <span class="step-number">5</span>
+                <strong>「保存」をクリック</strong>
+            </div>
+
+            <h3>Web共有</h3>
+            <ul>
+                <li>ピックアップ詳細ページで「共有URL」を取得</li>
+                <li>URLをお客様にメールなどで送信</li>
+                <li>お客様は認証なしで商品一覧を閲覧可能</li>
+                <li>PDFダウンロードも可能</li>
+            </ul>
+        </div>
+
+        <!-- スライド16: データ連携（エクスポート） -->
+        <div class="slide">
+            <h2>📊 データ連携 - エクスポート</h2>
+            <p>システムのデータをCSVまたはExcel形式でエクスポートできます。</p>
+
+            <h3>エクスポート手順</h3>
+            <div class="step-box">
+                <span class="step-number">1</span>
+                <strong>各マスタの一覧ページへ移動</strong>
+                <p style="margin-top: 10px;">アイテム、生地、型紙などの一覧ページ</p>
+            </div>
+
+            <div class="step-box">
+                <span class="step-number">2</span>
+                <strong>「エクスポート」ボタンをクリック</strong>
+            </div>
+
+            <div class="step-box">
+                <span class="step-number">3</span>
+                <strong>形式を選択（CSV / Excel）</strong>
+            </div>
+
+            <div class="step-box">
+                <span class="step-number">4</span>
+                <strong>ダウンロード開始</strong>
+                <p style="margin-top: 10px;">現在表示されているデータがダウンロードされます</p>
+            </div>
+
+            <div class="tip-box">
+                <strong>💡 ヒント</strong>
+                <p>検索やフィルターを適用した状態でエクスポートすると、絞り込まれたデータのみが出力されます。</p>
+            </div>
+        </div>
+
+        <!-- スライド17: データ連携（インポート） -->
+        <div class="slide">
+            <h2>📊 データ連携 - インポート</h2>
+            <p>CSVまたはExcelファイルからデータを一括登録できます。</p>
+
+            <h3>インポート手順</h3>
+            <div class="step-box">
+                <span class="step-number">1</span>
+                <strong>テンプレートをダウンロード</strong>
+                <p style="margin-top: 10px;">各マスタページから「テンプレート」ボタンをクリック</p>
+            </div>
+
+            <div class="step-box">
+                <span class="step-number">2</span>
+                <strong>テンプレートにデータを入力</strong>
+                <p style="margin-top: 10px;">必須項目は必ず入力してください</p>
+            </div>
+
+            <div class="step-box">
+                <span class="step-number">3</span>
+                <strong>「インポート」ボタンをクリック</strong>
+            </div>
+
+            <div class="step-box">
+                <span class="step-number">4</span>
+                <strong>ファイルを選択</strong>
+            </div>
+
+            <div class="step-box">
+                <span class="step-number">5</span>
+                <strong>プレビュー確認後「インポート実行」</strong>
+            </div>
+
+            <div class="warning-box">
+                <strong>⚠️ 注意事項</strong>
+                <p>・テンプレートの列順序を変更しないでください<br>
+                ・必須項目が空の行はスキップされます<br>
+                ・重複するコードがある場合はエラーになります</p>
+            </div>
+        </div>
+
+        <!-- スライド18: トラブルシューティング -->
+        <div class="slide">
+            <h2>🔧 トラブルシューティング</h2>
+
+            <h3>ログインできない</h3>
+            <div class="step-box">
+                <p><strong>原因：</strong> メールアドレスまたはパスワードが間違っている</p>
+                <p><strong>対処：</strong> 入力内容を確認し、大文字・小文字に注意してください</p>
+            </div>
+
+            <h3>画像がアップロードできない</h3>
+            <div class="step-box">
+                <p><strong>原因：</strong> ファイルサイズが大きすぎる、またはファイル形式が対応していない</p>
+                <p><strong>対処：</strong> 10MB以下のJPEG、PNG、GIF、WebP形式の画像を使用してください</p>
+            </div>
+
+            <h3>PDFがアップロードできない</h3>
+            <div class="step-box">
+                <p><strong>原因：</strong> ファイルサイズが制限を超えている</p>
+                <p><strong>対処：</strong> 型紙PDFは20MB以下、CADファイルは50MB以下にしてください</p>
+            </div>
+
+            <h3>データが表示されない</h3>
+            <div class="step-box">
+                <p><strong>原因：</strong> ネットワークの問題、または権限がない</p>
+                <p><strong>対処：</strong> ページを再読み込みするか、管理者に権限を確認してください</p>
+            </div>
+
+            <h3>その他の問題</h3>
+            <div class="step-box">
+                <p>解決しない場合は、システム管理者にお問い合わせください。</p>
+            </div>
+        </div>
+
+        <!-- スライド19: ベストプラクティス -->
+        <div class="slide">
+            <h2>✨ 使用上のベストプラクティス</h2>
+
+            <h3>データ管理</h3>
+            <ul>
+                <li>定期的にデータをエクスポートしてバックアップを取りましょう</li>
+                <li>アイテムNo.や生地品番は統一された命名規則を使用しましょう</li>
+                <li>不要になったアイテムは削除せずアーカイブ機能を使用しましょう</li>
+            </ul>
+
+            <h3>画像管理</h3>
+            <ul>
+                <li>画像はアップロード前に適切なサイズに圧縮しましょう</li>
+                <li>わかりやすいファイル名を付けましょう（例：白シャツ_正面.jpg）</li>
+                <li>複数アングルの画像を登録すると展示会で便利です</li>
+            </ul>
+
+            <h3>セキュリティ</h3>
+            <ul>
+                <li>パスワードは定期的に変更しましょう</li>
+                <li>共有PCでは使用後に必ずログアウトしましょう</li>
+                <li>ピックアップの共有URLは関係者のみに送信しましょう</li>
+            </ul>
+
+            <div class="tip-box">
+                <strong>💡 効率アップのコツ</strong>
+                <p>型紙と生地を先に登録しておくと、アイテム登録時に選択するだけで紐付けができるため効率的です。</p>
+            </div>
+        </div>
+
+        <!-- スライド20: まとめ -->
+        <div class="slide">
+            <h2>🎉 まとめ</h2>
+            <p style="font-size: 1.4em; margin: 40px 0;">このマニュアルでは、アパレル商品管理システムの主要な機能と操作方法をご紹介しました。</p>
+
+            <h3>システムの主要機能</h3>
+            <div class="feature-grid" style="grid-template-columns: 1fr 1fr;">
+                <div class="feature-box">
+                    <h3>✅ アイテム管理</h3>
+                </div>
+                <div class="feature-box">
+                    <h3>✅ 生地マスタ</h3>
+                </div>
+                <div class="feature-box">
+                    <h3>✅ 型紙マスタ</h3>
+                </div>
+                <div class="feature-box">
+                    <h3>✅ 展示会カタログ</h3>
+                </div>
+                <div class="feature-box">
+                    <h3>✅ サンプル貸出</h3>
+                </div>
+                <div class="feature-box">
+                    <h3>✅ ピックアップ</h3>
+                </div>
+            </div>
+
+            <div class="tip-box" style="margin-top: 50px;">
+                <p style="font-size: 1.3em; text-align: center;"><strong>ご不明な点がございましたら、システム管理者までお気軽にお問い合わせください。</strong></p>
+            </div>
+
+            <p style="text-align: center; margin-top: 60px; font-size: 1.2em; color: #666;">
+                株式会社 互興<br>
+                Version 1.0
+            </p>
+        </div>
+    </div>
+
+    <div class="navigation">
+        <button class="nav-btn" id="prev-btn" onclick="changeSlide(-1)">← 前へ</button>
+        <button class="nav-btn" id="next-btn" onclick="changeSlide(1)">次へ →</button>
+    </div>
+
+    <script>
+        let currentSlide = 0;
+        const slides = document.querySelectorAll('.slide');
+        const totalSlides = slides.length;
+
+        document.getElementById('total-slides').textContent = totalSlides;
+
+        function showSlide(index) {
+            slides.forEach((slide, i) => {
+                slide.classList.remove('active');
+                if (i === index) {
+                    slide.classList.add('active');
+                }
+            });
+
+            currentSlide = index;
+            document.getElementById('current-slide').textContent = currentSlide + 1;
+
+            // ボタンの有効/無効
+            document.getElementById('prev-btn').disabled = currentSlide === 0;
+            document.getElementById('next-btn').disabled = currentSlide === totalSlides - 1;
+        }
+
+        function changeSlide(direction) {
+            let newIndex = currentSlide + direction;
+            if (newIndex >= 0 && newIndex < totalSlides) {
+                showSlide(newIndex);
+            }
+        }
+
+        // キーボード操作
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'ArrowLeft') {
+                changeSlide(-1);
+            } else if (e.key === 'ArrowRight' || e.key === ' ') {
+                e.preventDefault();
+                changeSlide(1);
+            } else if (e.key === 'Home') {
+                showSlide(0);
+            } else if (e.key === 'End') {
+                showSlide(totalSlides - 1);
+            }
+        });
+
+        // 初期表示
+        showSlide(0);
+    </script>
+</body>
+</html>
