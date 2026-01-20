@@ -16,6 +16,7 @@ const ItemsList: React.FC = () => {
   const [error, setError] = useState<string | null>(null)
   const [searchQuery, setSearchQuery] = useState('')
   const [createdByFilter, setCreatedByFilter] = useState('')
+  const [plannerIdFilter, setPlannerIdFilter] = useState('')
   const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc')
   const [lastDoc, setLastDoc] = useState<QueryDocumentSnapshot | null>(null)
   const [firstDoc, setFirstDoc] = useState<QueryDocumentSnapshot | null>(null)
@@ -42,8 +43,15 @@ const ItemsList: React.FC = () => {
       // 入力者フィルターを適用
       let filteredItems = result.items
       if (createdByFilter.trim()) {
-        filteredItems = result.items.filter(item =>
+        filteredItems = filteredItems.filter(item =>
           item.createdBy?.toLowerCase().includes(createdByFilter.toLowerCase())
+        )
+      }
+
+      // 企画担当者フィルターを適用
+      if (plannerIdFilter.trim()) {
+        filteredItems = filteredItems.filter(item =>
+          item.plannerId?.toLowerCase().includes(plannerIdFilter.toLowerCase())
         )
       }
 
@@ -198,15 +206,37 @@ const ItemsList: React.FC = () => {
               <label htmlFor="createdByFilter" className="block text-sm font-medium text-gray-700 mb-1">
                 入力者IDで絞り込み
               </label>
-              <input
+              <select
                 id="createdByFilter"
-                type="text"
                 value={createdByFilter}
                 onChange={(e) => setCreatedByFilter(e.target.value)}
-                onKeyPress={(e) => e.key === 'Enter' && handleSearch()}
-                placeholder="例: tanaka@company.co.jp"
                 className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500"
-              />
+              >
+                <option value="">すべて表示</option>
+                {[...new Set(items.map(item => item.createdBy).filter(Boolean))].map(createdBy => (
+                  <option key={createdBy} value={createdBy}>
+                    {createdBy}
+                  </option>
+                ))}
+              </select>
+            </div>
+            <div className="flex-1">
+              <label htmlFor="plannerIdFilter" className="block text-sm font-medium text-gray-700 mb-1">
+                企画担当者IDで絞り込み
+              </label>
+              <select
+                id="plannerIdFilter"
+                value={plannerIdFilter}
+                onChange={(e) => setPlannerIdFilter(e.target.value)}
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500"
+              >
+                <option value="">すべて表示</option>
+                {[...new Set(items.map(item => item.plannerId).filter(Boolean))].map(plannerId => (
+                  <option key={plannerId} value={plannerId}>
+                    {plannerId}
+                  </option>
+                ))}
+              </select>
             </div>
             <div className="w-full md:w-48">
               <label htmlFor="sort" className="block text-sm font-medium text-gray-700 mb-1">
@@ -285,6 +315,9 @@ const ItemsList: React.FC = () => {
                         入力者ID
                       </th>
                       <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        企画担当者ID
+                      </th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                         ステータス
                       </th>
                       <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
@@ -349,6 +382,11 @@ const ItemsList: React.FC = () => {
                         <td className="px-6 py-4">
                           <div className="text-sm text-gray-600">
                             {item.createdBy || <span className="text-gray-400">-</span>}
+                          </div>
+                        </td>
+                        <td className="px-6 py-4">
+                          <div className="text-sm text-gray-600">
+                            {item.plannerId || <span className="text-gray-400">-</span>}
                           </div>
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap">{getStatusBadge(item.status ?? 'active')}</td>

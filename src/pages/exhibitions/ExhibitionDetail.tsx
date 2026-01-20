@@ -22,6 +22,7 @@ const ExhibitionDetail: React.FC = () => {
   const [selectedItemIds, setSelectedItemIds] = useState<string[]>([])
   const [searchQuery, setSearchQuery] = useState('')
   const [createdByFilter, setCreatedByFilter] = useState('')
+  const [plannerIdFilter, setPlannerIdFilter] = useState('')
   const [savingCatalog, setSavingCatalog] = useState(false)
 
   useEffect(() => {
@@ -514,6 +515,18 @@ const ExhibitionDetail: React.FC = () => {
                     </option>
                   ))}
                 </select>
+                <select
+                  value={plannerIdFilter}
+                  onChange={(e) => setPlannerIdFilter(e.target.value)}
+                  className="flex-1 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500"
+                >
+                  <option value="">企画担当者：絞り込み</option>
+                  {[...new Set(allItems.map(item => item.plannerId).filter(Boolean))].map(plannerId => (
+                    <option key={plannerId} value={plannerId}>
+                      {plannerId}
+                    </option>
+                  ))}
+                </select>
               </div>
 
               {/* 保存ボタン */}
@@ -553,6 +566,9 @@ const ExhibitionDetail: React.FC = () => {
                     <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">
                       工場
                     </th>
+                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                      企画担当者ID
+                    </th>
                   </tr>
                 </thead>
                 <tbody className="bg-white divide-y divide-gray-200">
@@ -560,17 +576,17 @@ const ExhibitionDetail: React.FC = () => {
                     .filter(
                       (item) =>
                         (item.itemNo.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                        item.name.toLowerCase().includes(searchQuery.toLowerCase())) &&
-                        (createdByFilter === '' || item.createdBy === createdByFilter)
+                          item.name.toLowerCase().includes(searchQuery.toLowerCase())) &&
+                        (createdByFilter === '' || item.createdBy === createdByFilter) &&
+                        (plannerIdFilter === '' || item.plannerId === plannerIdFilter)
                     )
                     .map((item) => (
                       <tr
                         key={item.id}
-                        className={`hover:bg-gray-50 ${
-                          selectedItemIds.includes(item.id!)
+                        className={`hover:bg-gray-50 ${selectedItemIds.includes(item.id!)
                             ? 'bg-blue-50'
                             : ''
-                        }`}
+                          }`}
                       >
                         <td className="px-4 py-3">
                           <input
@@ -597,6 +613,9 @@ const ExhibitionDetail: React.FC = () => {
                         </td>
                         <td className="px-4 py-3 text-sm text-gray-900">
                           {item.factory || '-'}
+                        </td>
+                        <td className="px-4 py-3 text-sm text-gray-900">
+                          {item.plannerId || '-'}
                         </td>
                       </tr>
                     ))}

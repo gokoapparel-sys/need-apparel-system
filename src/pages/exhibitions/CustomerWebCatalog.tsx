@@ -32,8 +32,8 @@ const CustomerWebCatalog: React.FC = () => {
       // カタログアイテムを取得
       const catalogItemIds = exhibitionData?.catalogItemIds || []
       if (catalogItemIds.length > 0) {
-        const result = await itemsService.listItems()
-        const catalogItems = result.items.filter(item => catalogItemIds.includes(item.id!))
+        const allItems = await itemsService.listAllItems()
+        const catalogItems = allItems.filter(item => catalogItemIds.includes(item.id!))
         setItems(catalogItems)
 
         // 各アイテムのQRコードを生成

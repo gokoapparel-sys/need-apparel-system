@@ -65,8 +65,8 @@ const StaffWebCatalog: React.FC = () => {
       // カタログアイテムを取得
       const catalogItemIds = exhibitionData?.catalogItemIds || []
       if (catalogItemIds.length > 0) {
-        const result = await itemsService.listItems()
-        const catalogItems = result.items.filter(item => catalogItemIds.includes(item.id!))
+        const allItems = await itemsService.listAllItems()
+        const catalogItems = allItems.filter(item => catalogItemIds.includes(item.id!))
         setItems(catalogItems)
 
         // 各アイテムのQRコードを生成
@@ -150,10 +150,22 @@ const StaffWebCatalog: React.FC = () => {
         pickup = updatedPickupsResult.pickups.find(p => p.id === pickupId)
       }
 
-      // 既存のアイテムIDと結合
-      const existingItemIds = pickup?.itemIds || []
+      // 今回選択されているアイテムIDリスト
       const newItemIds = Array.from(selectedItemIds)
-      const mergedItemIds = [...new Set([...existingItemIds, ...newItemIds])]
+
+      //アイテムIDリストの決定
+      let finalItemIds: string[]
+
+      if (selectedPickupId) {
+        // リストから選択して編集している場合：
+        // ユーザーは現在のリスト内容を見て操作しているため、チェックボックスの状態（削除操作含む）で上書きする
+        finalItemIds = newItemIds
+      } else {
+        // コードを手入力した場合（新規または既存への追加）：
+        // 既存の内容が見えていない可能性があるため、既存リストとマージして「追加」とする（誤って消さないように）
+        const existingItemIds = pickup?.itemIds || []
+        finalItemIds = [...new Set([...existingItemIds, ...newItemIds])]
+      }
 
       // ピックアップリストを更新
       if (!pickupId) {
@@ -161,7 +173,7 @@ const StaffWebCatalog: React.FC = () => {
       }
 
       await pickupsService.updatePickup(pickupId, {
-        itemIds: mergedItemIds
+        itemIds: finalItemIds
       })
 
       // 成功メッセージを表示

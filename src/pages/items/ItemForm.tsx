@@ -30,6 +30,7 @@ const ItemForm: React.FC = () => {
     patternId: '',
     patternNo: '',
     createdBy: '',
+    plannerId: '', // 企画担当者ID
     appealPoint: '',
   })
 
@@ -87,6 +88,7 @@ const ItemForm: React.FC = () => {
           patternId: item.patternId || '',
           patternNo: item.patternNo || '',
           createdBy: item.createdBy || '',
+          plannerId: item.plannerId || '',
           appealPoint: item.appealPoint || '',
         })
         setExistingImages(item.images || [])
@@ -196,6 +198,9 @@ const ItemForm: React.FC = () => {
     }
     if (!formData.createdBy.trim()) {
       newErrors.createdBy = '入力者IDは必須です'
+    }
+    if (!formData.plannerId.trim()) {
+      newErrors.plannerId = '企画担当者IDは必須です'
     }
 
     setErrors(newErrors)
@@ -320,9 +325,8 @@ const ItemForm: React.FC = () => {
                   value={formData.itemNo}
                   onChange={handleChange}
                   placeholder="例: IT-001"
-                  className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500 ${
-                    errors.itemNo ? 'border-red-500' : 'border-gray-300'
-                  }`}
+                  className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500 ${errors.itemNo ? 'border-red-500' : 'border-gray-300'
+                    }`}
                   disabled={submitting}
                 />
                 {errors.itemNo && <p className="mt-1 text-sm text-red-500">{errors.itemNo}</p>}
@@ -339,9 +343,8 @@ const ItemForm: React.FC = () => {
                   type="text"
                   value={formData.name}
                   onChange={handleChange}
-                  className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500 ${
-                    errors.name ? 'border-red-500' : 'border-gray-300'
-                  }`}
+                  className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500 ${errors.name ? 'border-red-500' : 'border-gray-300'
+                    }`}
                   disabled={submitting}
                 />
                 {errors.name && <p className="mt-1 text-sm text-red-500">{errors.name}</p>}
@@ -569,14 +572,33 @@ const ItemForm: React.FC = () => {
                 value={formData.createdBy}
                 onChange={handleChange}
                 placeholder="例: tanaka@company.co.jp"
-                className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500 ${
-                  errors.createdBy ? 'border-red-500' : 'border-gray-300'
-                }`}
+                className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500 ${errors.createdBy ? 'border-red-500' : 'border-gray-300'
+                  }`}
                 disabled={submitting}
               />
               {errors.createdBy && <p className="mt-1 text-sm text-red-500">{errors.createdBy}</p>}
               <p className="mt-1 text-xs text-gray-500">
                 ※必須：社内メールアドレスを入力してください。分類しない場合は『free』と入力してください
+              </p>
+            </div>
+            <div className="mt-4">
+              <label htmlFor="plannerId" className="block text-sm font-medium text-gray-700 mb-1">
+                企画担当者ID <span className="text-red-500">*</span>
+              </label>
+              <input
+                id="plannerId"
+                name="plannerId"
+                type="text"
+                value={formData.plannerId}
+                onChange={handleChange}
+                placeholder="例: yamada@company.co.jp"
+                className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500 ${errors.plannerId ? 'border-red-500' : 'border-gray-300'
+                  }`}
+                disabled={submitting}
+              />
+              {errors.plannerId && <p className="mt-1 text-sm text-red-500">{errors.plannerId}</p>}
+              <p className="mt-1 text-xs text-gray-500">
+                ※必須：企画担当者のIDを入力してください
               </p>
             </div>
           </div>

@@ -101,7 +101,7 @@ const PickupsList: React.FC = () => {
       console.log('お客様名:', pickup.customerName)
 
       // アイテムデータを読み込み
-      const { items: allItems } = await itemsService.listItems({ status: 'active' })
+      const allItems = await itemsService.listAllItems({ status: 'active' })
       const selectedItems = allItems.filter((item) => pickup.itemIds?.includes(item.id!))
 
       if (selectedItems.length === 0) {
