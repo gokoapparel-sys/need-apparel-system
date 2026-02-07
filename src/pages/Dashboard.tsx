@@ -17,16 +17,16 @@ const Dashboard: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <nav className="bg-white shadow-lg border-b-4 border-emerald-600">
+      <nav className="bg-white shadow-sm border-b-4 border-primary-200">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex flex-wrap justify-between items-center min-h-[5rem] py-2">
             <div className="flex items-center space-x-2 sm:space-x-4">
-              <img src="/goko-logo.svg" alt="GOKO" className="h-5 sm:h-6" />
+              <img src="/need-logo.svg" alt="NEED" className="h-8 sm:h-10" />
               <div>
                 <h1 className="text-sm sm:text-xl font-black text-gray-900 tracking-tight whitespace-nowrap">
-                  アパレル商品管理システム
+                  ニード商品管理システム
                 </h1>
-                <p className="text-xs text-gray-600 font-medium">GOKO Co.,Ltd.</p>
+                <p className="text-xs text-gray-600 font-medium">NEED Co., Ltd.</p>
               </div>
             </div>
             <div className="flex items-center space-x-2 sm:space-x-6">
@@ -44,84 +44,84 @@ const Dashboard: React.FC = () => {
       </nav>
 
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-          {/* アイテム管理 */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {/* アイテム管理 - Pastel Blue */}
           <div
             onClick={() => navigate('/items')}
-            className="relative overflow-hidden rounded-lg bg-gradient-to-br from-slate-600 to-slate-700 p-4 cursor-pointer transition-all duration-200 hover:shadow-xl hover:scale-[1.02] border border-slate-500"
+            className="relative overflow-hidden rounded-2xl bg-blue-100 p-6 cursor-pointer transition-all duration-200 hover:shadow-lg hover:-translate-y-1 border-b-4 border-blue-300 hover:bg-blue-200"
           >
-            <h2 className="text-lg font-bold text-cyan-300 mb-1">アイテム管理</h2>
-            <p className="text-slate-200 text-xs">商品情報の登録・編集・検索</p>
+            <h2 className="text-xl font-bold text-blue-800 mb-2">アイテム管理</h2>
+            <p className="text-blue-700 text-sm font-medium">商品情報の登録・編集・検索</p>
           </div>
 
-          {/* 展示会管理 */}
+          {/* 展示会管理 - Pastel Pink */}
           <div
             onClick={() => navigate('/exhibitions')}
-            className="relative overflow-hidden rounded-lg bg-gradient-to-br from-slate-600 to-slate-700 p-4 cursor-pointer transition-all duration-200 hover:shadow-xl hover:scale-[1.02] border border-slate-500"
+            className="relative overflow-hidden rounded-2xl bg-pink-100 p-6 cursor-pointer transition-all duration-200 hover:shadow-lg hover:-translate-y-1 border-b-4 border-pink-300 hover:bg-pink-200"
           >
-            <h2 className="text-lg font-bold text-cyan-300 mb-1">展示会管理</h2>
-            <p className="text-slate-200 text-xs">展示会の管理とカタログ作成</p>
+            <h2 className="text-xl font-bold text-pink-800 mb-2">展示会管理</h2>
+            <p className="text-pink-700 text-sm font-medium">展示会の管理とカタログ作成</p>
           </div>
 
-          {/* ピックアップリスト */}
+          {/* ピックアップリスト - Pastel Yellow */}
           <div
             onClick={() => navigate('/pickups')}
-            className="relative overflow-hidden rounded-lg bg-gradient-to-br from-slate-600 to-slate-700 p-4 cursor-pointer transition-all duration-200 hover:shadow-xl hover:scale-[1.02] border border-slate-500"
+            className="relative overflow-hidden rounded-2xl bg-amber-100 p-6 cursor-pointer transition-all duration-200 hover:shadow-lg hover:-translate-y-1 border-b-4 border-amber-300 hover:bg-amber-200"
           >
-            <h2 className="text-lg font-bold text-cyan-300 mb-1">ピックアップリスト</h2>
-            <p className="text-slate-200 text-xs">展示会での商品選定とWeb共有</p>
+            <h2 className="text-xl font-bold text-amber-800 mb-2">ピックアップリスト</h2>
+            <p className="text-amber-700 text-sm font-medium">展示会での商品選定とWeb共有</p>
           </div>
 
-          {/* 生地マスタ */}
+          {/* 生地マスタ - Pastel Green */}
           <div
             onClick={() => navigate('/fabrics')}
-            className="relative overflow-hidden rounded-lg bg-gradient-to-br from-emerald-600 to-emerald-700 p-4 cursor-pointer transition-all duration-200 hover:shadow-xl hover:scale-[1.02] border border-emerald-500"
+            className="relative overflow-hidden rounded-2xl bg-emerald-100 p-6 cursor-pointer transition-all duration-200 hover:shadow-lg hover:-translate-y-1 border-b-4 border-emerald-300 hover:bg-emerald-200"
           >
-            <h2 className="text-lg font-bold text-amber-300 mb-1">生地マスタ</h2>
-            <p className="text-emerald-100 text-xs">生地情報の一元管理</p>
+            <h2 className="text-xl font-bold text-emerald-800 mb-2">生地マスタ</h2>
+            <p className="text-emerald-700 text-sm font-medium">生地情報の一元管理</p>
           </div>
 
-          {/* 型紙マスタ */}
+          {/* 型紙マスタ - Pastel Purple */}
           <div
             onClick={() => navigate('/patterns')}
-            className="relative overflow-hidden rounded-lg bg-gradient-to-br from-emerald-600 to-emerald-700 p-4 cursor-pointer transition-all duration-200 hover:shadow-xl hover:scale-[1.02] border border-emerald-500"
+            className="relative overflow-hidden rounded-2xl bg-purple-100 p-6 cursor-pointer transition-all duration-200 hover:shadow-lg hover:-translate-y-1 border-b-4 border-purple-300 hover:bg-purple-200"
           >
-            <h2 className="text-lg font-bold text-amber-300 mb-1">型紙マスタ</h2>
-            <p className="text-emerald-100 text-xs">型紙・仕様書・展開図の管理</p>
+            <h2 className="text-xl font-bold text-purple-800 mb-2">型紙マスタ</h2>
+            <p className="text-purple-700 text-sm font-medium">型紙・仕様書・展開図の管理</p>
           </div>
 
-          {/* 画像アップロード */}
+          {/* 画像アップロード - Pastel Orange */}
           <div
             onClick={() => navigate('/uploads')}
-            className="relative overflow-hidden rounded-lg bg-gradient-to-br from-emerald-600 to-emerald-700 p-4 cursor-pointer transition-all duration-200 hover:shadow-xl hover:scale-[1.02] border border-emerald-500"
+            className="relative overflow-hidden rounded-2xl bg-orange-100 p-6 cursor-pointer transition-all duration-200 hover:shadow-lg hover:-translate-y-1 border-b-4 border-orange-300 hover:bg-orange-200"
           >
-            <h2 className="text-lg font-bold text-amber-300 mb-1">画像アップロード</h2>
-            <p className="text-emerald-100 text-xs">商品画像のアップロードと管理</p>
+            <h2 className="text-xl font-bold text-orange-800 mb-2">画像アップロード</h2>
+            <p className="text-orange-700 text-sm font-medium">商品画像のアップロードと管理</p>
           </div>
 
-          {/* サンプル貸出 */}
+          {/* サンプル貸出 - Blue Gray */}
           <div
             onClick={() => navigate('/loans')}
-            className="relative overflow-hidden rounded-lg bg-gradient-to-br from-gray-500 to-gray-600 p-4 cursor-pointer transition-all duration-200 hover:shadow-xl hover:scale-[1.02] border border-gray-400"
+            className="relative overflow-hidden rounded-2xl bg-slate-100 p-6 cursor-pointer transition-all duration-200 hover:shadow-lg hover:-translate-y-1 border-b-4 border-slate-300 hover:bg-slate-200"
           >
-            <h2 className="text-lg font-bold text-blue-200 mb-1">サンプル貸出</h2>
-            <p className="text-gray-100 text-xs">貸出・返却のシンプルな管理</p>
+            <h2 className="text-xl font-bold text-slate-700 mb-2">サンプル貸出</h2>
+            <p className="text-slate-600 text-sm font-medium">貸出・返却のシンプルな管理</p>
           </div>
 
-          {/* ピックアップランキング */}
+          {/* ピックアップランキング - Primary (Rose) */}
           <div
             onClick={() => navigate('/pickup-rankings')}
-            className="relative overflow-hidden rounded-lg bg-gradient-to-br from-slate-600 to-slate-700 p-4 cursor-pointer transition-all duration-200 hover:shadow-xl hover:scale-[1.02] border border-slate-500"
+            className="relative overflow-hidden rounded-2xl bg-rose-100 p-6 cursor-pointer transition-all duration-200 hover:shadow-lg hover:-translate-y-1 border-b-4 border-rose-300 hover:bg-rose-200"
           >
-            <h2 className="text-lg font-bold text-cyan-300 mb-1">ピックアップランキング</h2>
-            <p className="text-slate-200 text-xs">人気アイテムのランキング分析</p>
+            <h2 className="text-xl font-bold text-rose-800 mb-2">ピックアップランキング</h2>
+            <p className="text-rose-700 text-sm font-medium">人気アイテムのランキング分析</p>
           </div>
         </div>
 
         <div className="mt-8 card">
           <h2 className="text-2xl font-bold text-gray-900 mb-4">ようこそ</h2>
           <p className="text-gray-700">
-            アパレル商品管理システムにログインしました。
+            ニード商品管理システムにログインしました。
             <br />
             各機能のカードをクリックして開始してください。
           </p>

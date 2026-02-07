@@ -116,7 +116,7 @@ export async function convertImagesToBase64(
   for (const url of imageUrls) {
     try {
       // 5秒のタイムアウトを設定
-      results[url] = await withTimeout(imageUrlToBase64(url), 5000)
+      results[url] = await withTimeout(imageUrlToBase64(url), 15000)
       successCount++
     } catch (error: any) {
       if (error?.message === 'Timeout') {

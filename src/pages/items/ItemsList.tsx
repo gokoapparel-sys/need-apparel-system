@@ -2,8 +2,7 @@ import React, { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../../contexts/AuthContext'
 import { itemsService, ListItemsResult } from '../../services/itemsService'
-import { patternsService } from '../../services/patternsService'
-import { Item, Pattern } from '../../types'
+import { Item } from '../../types'
 import { QueryDocumentSnapshot } from 'firebase/firestore'
 
 const ItemsList: React.FC = () => {
@@ -11,13 +10,14 @@ const ItemsList: React.FC = () => {
   const navigate = useNavigate()
 
   const [items, setItems] = useState<Item[]>([])
-  const [patterns, setPatterns] = useState<Map<string, Pattern>>(new Map())
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [searchQuery, setSearchQuery] = useState('')
+  const [itemNoPrefixFilter, setItemNoPrefixFilter] = useState('ALL')
   const [createdByFilter, setCreatedByFilter] = useState('')
   const [plannerIdFilter, setPlannerIdFilter] = useState('')
   const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc')
+  const [sortBy, setSortBy] = useState<'updatedAt' | 'sku'>('updatedAt')
   const [lastDoc, setLastDoc] = useState<QueryDocumentSnapshot | null>(null)
   const [firstDoc, setFirstDoc] = useState<QueryDocumentSnapshot | null>(null)
   const [hasMore, setHasMore] = useState(false)
@@ -33,7 +33,8 @@ const ItemsList: React.FC = () => {
       setError(null)
       const result: ListItemsResult = await itemsService.listItems({
         q: searchQuery,
-        sortBy: 'updatedAt',
+        itemNoPrefix: itemNoPrefixFilter,
+        sortBy,
         sortOrder,
         lastDoc: direction === 'next' ? cursor : undefined,
         firstDoc: direction === 'prev' ? cursor : undefined,
@@ -59,25 +60,6 @@ const ItemsList: React.FC = () => {
       setLastDoc(result.lastDoc)
       setFirstDoc(result.firstDoc)
       setHasMore(result.hasMore)
-
-      // 型紙情報を取得
-      const patternIds = [...new Set(result.items.map((item) => item.patternId).filter(Boolean))]
-      if (patternIds.length > 0) {
-        const patternsMap = new Map<string, Pattern>()
-        await Promise.all(
-          patternIds.map(async (id) => {
-            try {
-              const pattern = await patternsService.getPattern(id!)
-              if (pattern) {
-                patternsMap.set(id!, pattern)
-              }
-            } catch (error) {
-              console.error(`型紙取得エラー (${id}):`, error)
-            }
-          })
-        )
-        setPatterns(patternsMap)
-      }
     } catch (error: any) {
       console.error('アイテム取得エラー:', error)
       setError(error?.message || '読み込みに失敗しました')
@@ -91,7 +73,7 @@ const ItemsList: React.FC = () => {
     if (currentUser) {
       fetchItems('refresh')
     }
-  }, [currentUser, sortOrder])
+  }, [currentUser, sortOrder, sortBy, itemNoPrefixFilter])
 
   // 検索
   const handleSearch = () => {
@@ -199,8 +181,18 @@ const ItemsList: React.FC = () => {
                 onChange={(e) => setSearchQuery(e.target.value)}
                 onKeyPress={(e) => e.key === 'Enter' && handleSearch()}
                 placeholder="検索キーワードを入力..."
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500"
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500 mb-2"
               />
+              <select
+                value={itemNoPrefixFilter}
+                onChange={(e) => setItemNoPrefixFilter(e.target.value)}
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500"
+              >
+                <option value="ALL">すべて</option>
+                <option value="NDC">NDC</option>
+                <option value="NDF">NDF</option>
+                <option value="その他">その他</option>
+              </select>
             </div>
             <div className="flex-1">
               <label htmlFor="createdByFilter" className="block text-sm font-medium text-gray-700 mb-1">
@@ -244,12 +236,17 @@ const ItemsList: React.FC = () => {
               </label>
               <select
                 id="sort"
-                value={sortOrder}
-                onChange={(e) => setSortOrder(e.target.value as 'asc' | 'desc')}
+                value={`${sortBy}-${sortOrder}`}
+                onChange={(e) => {
+                  const [field, order] = e.target.value.split('-')
+                  setSortBy(field as 'updatedAt' | 'sku')
+                  setSortOrder(order as 'asc' | 'desc')
+                }}
                 className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500"
               >
-                <option value="desc">新しい順</option>
-                <option value="asc">古い順</option>
+                <option value="updatedAt-desc">新しい順</option>
+                <option value="updatedAt-asc">古い順</option>
+                <option value="sku-asc">ナンバー順（若い順）</option>
               </select>
             </div>
             <div className="flex items-end">
@@ -309,13 +306,22 @@ const ItemsList: React.FC = () => {
                         生地No.
                       </th>
                       <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        型紙
+                        ドル単価
+                      </th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        生地値
+                      </th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        要尺
+                      </th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        工場名
                       </th>
                       <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                         入力者ID
                       </th>
                       <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        企画担当者ID
+                        企画者ID
                       </th>
                       <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                         ステータス
@@ -356,28 +362,26 @@ const ItemsList: React.FC = () => {
                           <div className="text-sm font-medium text-gray-900">{item.name}</div>
                         </td>
                         <td className="px-6 py-4">
-                          <div className="text-sm text-gray-600">{item.sku}</div>
+                          <div className="text-sm text-gray-600">{item.itemNo}</div>
                         </td>
                         <td className="px-6 py-4">
                           <div className="text-sm text-gray-600">{item.fabricNo || '-'}</div>
                         </td>
                         <td className="px-6 py-4">
-                          <div className="text-xs text-gray-600">
-                            {item.patternId && patterns.has(item.patternId) ? (
-                              <button
-                                onClick={(e) => {
-                                  e.stopPropagation() // 行クリックイベントを止める
-                                  navigate(`/patterns/${item.patternId}/detail`)
-                                }}
-                                className="inline-flex items-center px-2 py-0.5 rounded bg-purple-100 text-purple-800 hover:bg-purple-200 transition-colors cursor-pointer"
-                                title="型紙詳細を見る"
-                              >
-                                {patterns.get(item.patternId)?.patternCode}
-                              </button>
-                            ) : (
-                              <span className="text-gray-400">未設定</span>
-                            )}
+                          <div className="text-sm text-gray-600">{item.dollarPrice ? `$${item.dollarPrice}` : '-'}</div>
+                        </td>
+                        <td className="px-6 py-4">
+                          <div className="text-sm text-gray-600">
+                            {item.fabricCost ? `${item.fabricCost} ${item.fabricCostCurrency || 'USD'}` : '-'}
                           </div>
+                        </td>
+                        <td className="px-6 py-4">
+                          <div className="text-sm text-gray-600">
+                            {item.requiredFabricLength ? `${item.requiredFabricLength} m/pc` : '-'}
+                          </div>
+                        </td>
+                        <td className="px-6 py-4">
+                          <div className="text-sm text-gray-600">{item.factory || '-'}</div>
                         </td>
                         <td className="px-6 py-4">
                           <div className="text-sm text-gray-600">

@@ -10,7 +10,7 @@ const styles = StyleSheet.create({
   },
   header: {
     marginBottom: 20,
-    borderBottom: '2pt solid #333',
+    borderBottom: '2pt solid #be185d',
     paddingBottom: 10,
   },
   headerTop: {
@@ -34,6 +34,7 @@ const styles = StyleSheet.create({
     fontSize: 18,
     fontWeight: 'bold',
     marginBottom: 5,
+    color: '#be185d',
   },
   subtitle: {
     fontSize: 10,
@@ -49,7 +50,7 @@ const styles = StyleSheet.create({
     marginBottom: 15,
     marginRight: '2%',
     padding: 8,
-    border: '1pt solid #ddd',
+    border: '1pt solid #be185d',
   },
   itemImage: {
     width: '100%',
@@ -68,7 +69,7 @@ const styles = StyleSheet.create({
   label: {
     width: '35%',
     fontWeight: 'bold',
-    color: '#333',
+    color: '#555',
   },
   value: {
     width: '65%',
@@ -124,10 +125,10 @@ export const PickupPDF: React.FC<PickupPDFProps> = ({ pickup, items }) => {
           {/* ヘッダー（各ページに表示） */}
           <View style={styles.header}>
             <View style={styles.headerTop}>
-              <Image src="/goko-logo.svg" style={styles.logo} />
+              <Image src="/need-logo.svg" style={styles.logo} />
               <View style={styles.companyInfo}>
-                <Text style={styles.companyName}>株式会社 互興</Text>
-                <Text style={styles.companyName}>GOKO Co.,Ltd.</Text>
+                <Text style={styles.companyName}>株式会社ニード</Text>
+                <Text style={styles.companyName}>NEED Co., Ltd.</Text>
               </View>
             </View>
             <Text style={styles.title}>ピックアップリスト - {pickup.customerName}</Text>

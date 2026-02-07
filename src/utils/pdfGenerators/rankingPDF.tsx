@@ -17,9 +17,9 @@ const styles = StyleSheet.create({
   },
   header: {
     marginBottom: 20,
-    borderBottom: '3pt solid #3b82f6',
+    borderBottom: '3pt solid #0ea5e9',
     paddingBottom: 12,
-    backgroundColor: '#eff6ff',
+    backgroundColor: '#f0f9ff',
     padding: 12,
     borderRadius: 4,
   },
@@ -46,7 +46,7 @@ const styles = StyleSheet.create({
     fontWeight: 700,
     marginBottom: 8,
     lineHeight: 1.3,
-    color: '#3b82f6',
+    color: '#0ea5e9',
   },
   subtitle: {
     fontSize: 9,
@@ -63,8 +63,8 @@ const styles = StyleSheet.create({
     marginBottom: 15,
     marginRight: '2%',
     padding: 14,
-    border: '2pt solid #3b82f6',
-    backgroundColor: '#eff6ff',
+    border: '2pt solid #0ea5e9',
+    backgroundColor: '#f0f9ff',
     borderRadius: 6,
     position: 'relative',
   },
@@ -72,7 +72,7 @@ const styles = StyleSheet.create({
     position: 'absolute',
     top: 10,
     right: 10,
-    backgroundColor: '#3b82f6',
+    backgroundColor: '#0ea5e9',
     color: '#ffffff',
     width: 50,
     height: 50,
@@ -99,7 +99,7 @@ const styles = StyleSheet.create({
   itemNo: {
     fontSize: 22,
     fontWeight: 700,
-    color: '#3b82f6',
+    color: '#0ea5e9',
     marginBottom: 8,
     lineHeight: 1.3,
   },
@@ -107,7 +107,7 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: 700,
     marginBottom: 10,
-    color: '#3b82f6',
+    color: '#0ea5e9',
     lineHeight: 1.4,
   },
   itemRow: {
@@ -140,7 +140,7 @@ const styles = StyleSheet.create({
   },
   // 表紙スタイル
   coverPage: {
-    backgroundColor: '#3b82f6',
+    backgroundColor: '#0ea5e9',
     padding: 0,
     display: 'flex',
     flexDirection: 'column',
@@ -184,13 +184,13 @@ const styles = StyleSheet.create({
     lineHeight: 1.6,
   },
   coverBadge: {
-    backgroundColor: '#fbbf24',
+    backgroundColor: '#ffffff',
     padding: '12pt 28pt',
     borderRadius: 25,
     marginTop: 30,
     fontSize: 14,
-    color: '#3b82f6',
-    border: '2pt solid #ffffff',
+    color: '#0ea5e9',
+    border: 'none',
     lineHeight: 1.5,
     fontWeight: 700,
   },
@@ -250,8 +250,8 @@ export const RankingPDF: React.FC<RankingPDFProps> = ({ exhibition, rankings }) 
       {/* 表紙ページ */}
       <Page size="A4" orientation="landscape" style={styles.coverPage}>
         <View style={styles.coverContent}>
-          <Image src="/goko-logo.svg" style={styles.coverLogo} />
-          <Text style={styles.coverCompany}>株式会社 互興 | GOKO Co.,Ltd.</Text>
+          <Image src="/need-logo.svg" style={styles.coverLogo} />
+          <Text style={styles.coverCompany}>株式会社ニード | NEED Co., Ltd.</Text>
 
           <Text style={styles.coverTitle}>{exhibition.exhibitionName}</Text>
           <Text style={styles.coverSubtitle}>Pickup Ranking Report</Text>
@@ -264,7 +264,7 @@ export const RankingPDF: React.FC<RankingPDFProps> = ({ exhibition, rankings }) 
           <Text style={styles.coverBadge}>ピックアップランキング</Text>
         </View>
         <Text style={styles.coverFooter}>
-          株式会社 互興 GOKO Co.,Ltd.
+          株式会社ニード NEED Co., Ltd.
         </Text>
       </Page>
 
@@ -274,10 +274,10 @@ export const RankingPDF: React.FC<RankingPDFProps> = ({ exhibition, rankings }) 
           {/* ヘッダー（各ページに表示） */}
           <View style={styles.header}>
             <View style={styles.headerTop}>
-              <Image src="/goko-logo.svg" style={styles.logo} />
+              <Image src="/need-logo.svg" style={styles.logo} />
               <View style={styles.companyInfo}>
-                <Text style={styles.companyName}>株式会社 互興</Text>
-                <Text style={styles.companyName}>GOKO Co.,Ltd.</Text>
+                <Text style={styles.companyName}>株式会社ニード</Text>
+                <Text style={styles.companyName}>NEED Co., Ltd.</Text>
               </View>
             </View>
             <Text style={styles.title}>{exhibition.exhibitionName} - ピックアップランキング</Text>

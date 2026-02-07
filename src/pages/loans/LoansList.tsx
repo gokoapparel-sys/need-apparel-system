@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../../contexts/AuthContext'
 import { loansService } from '../../services/loansService'
+import { itemsService } from '../../services/itemsService'
 import { Loan } from '../../types'
 
 const LoansList: React.FC = () => {
@@ -16,6 +17,7 @@ const LoansList: React.FC = () => {
   const [returnDialogOpen, setReturnDialogOpen] = useState(false)
   const [selectedLoanId, setSelectedLoanId] = useState<string | null>(null)
   const [returnNotes, setReturnNotes] = useState('')
+  const [itemImages, setItemImages] = useState<Record<string, string>>({})
 
   useEffect(() => {
     loadLoans()
@@ -31,6 +33,26 @@ const LoansList: React.FC = () => {
       }
       const { loans: data } = await loansService.listLoans(params)
       setLoans(data)
+
+      // アイテム画像を非同期で取得
+      if (data.length > 0) {
+        const itemIds = Array.from(new Set(data.map(loan => loan.itemId)))
+        try {
+          const items = await itemsService.getItemsByIds(itemIds)
+          const imageMap: Record<string, string> = {}
+          items.forEach(item => {
+            if (item.id && item.images && item.images.length > 0) {
+              imageMap[item.id] = item.images[0].url
+            }
+          })
+          setItemImages(imageMap)
+        } catch (imageError) {
+          console.error('画像取得エラー:', imageError)
+          // 画像取得失敗はメインフローを止めない
+        }
+      } else {
+        setItemImages({})
+      }
     } catch (error) {
       console.error('貸出記録読み込みエラー:', error)
       alert('貸出記録の読み込みに失敗しました')
@@ -182,6 +204,9 @@ const LoansList: React.FC = () => {
             <table className="min-w-full divide-y divide-gray-200">
               <thead className="bg-gray-50">
                 <tr>
+                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase w-16">
+                    {/* 画像列 */}
+                  </th>
                   <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">
                     品番
                   </th>
@@ -211,13 +236,31 @@ const LoansList: React.FC = () => {
               <tbody className="bg-white divide-y divide-gray-200">
                 {loans.length === 0 ? (
                   <tr>
-                    <td colSpan={8} className="px-4 py-8 text-center text-gray-500">
+                    <td colSpan={9} className="px-4 py-8 text-center text-gray-500">
                       貸出記録がありません
                     </td>
                   </tr>
                 ) : (
                   loans.map((loan) => (
                     <tr key={loan.id} className="hover:bg-gray-50">
+                      <td className="px-4 py-3">
+                        <div className="w-12 h-12 flex-shrink-0">
+                          {itemImages[loan.itemId] ? (
+                            <div className="relative group">
+                              <img
+                                src={itemImages[loan.itemId]}
+                                alt=""
+                                className="w-12 h-12 object-cover rounded border border-gray-200 bg-white cursor-pointer hover:scale-110 transition-transform"
+                                onClick={() => window.open(itemImages[loan.itemId], '_blank')}
+                              />
+                            </div>
+                          ) : (
+                            <div className="w-12 h-12 bg-gray-100 rounded border border-gray-200 flex items-center justify-center text-gray-300 text-[10px]">
+                              No Img
+                            </div>
+                          )}
+                        </div>
+                      </td>
                       <td className="px-4 py-3 text-sm font-medium text-gray-900">{loan.itemNo}</td>
                       <td className="px-4 py-3 text-sm text-gray-900">{loan.itemName || '-'}</td>
                       <td className="px-4 py-3 text-sm text-gray-900">{loan.staff}</td>
@@ -234,11 +277,10 @@ const LoansList: React.FC = () => {
                       </td>
                       <td className="px-4 py-3 text-sm">
                         <span
-                          className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${
-                            loan.status === 'borrowed'
-                              ? 'bg-yellow-100 text-yellow-800'
-                              : 'bg-green-100 text-green-800'
-                          }`}
+                          className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${loan.status === 'borrowed'
+                            ? 'bg-yellow-100 text-yellow-800'
+                            : 'bg-green-100 text-green-800'
+                            }`}
                         >
                           {loan.status === 'borrowed' ? '貸出中' : '返却済み'}
                         </span>

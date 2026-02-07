@@ -1,9 +1,9 @@
 // 会社情報
 
 export const COMPANY_INFO = {
-  name: '株式会社互興',
-  nameEn: 'GOKO Co., Ltd.',
-  logo: '/goko-logo.svg',
+  name: '株式会社ニード',
+  nameEn: 'NEED Co., Ltd.',
+  logo: '/need-logo.svg',
   postalCode: '150-0001',
   address: '東京都渋谷区神宮前3-6-10',
   fullAddress: '〒150-0001 東京都渋谷区神宮前3-6-10',

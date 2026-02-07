@@ -47,6 +47,25 @@ function toItem(id: string, d: any): Item {
         ? Number(d.referencePrice)
         : undefined
 
+  const fabricCostNum =
+    typeof d?.fabricCost === 'number'
+      ? d.fabricCost
+      : Number.isFinite(Number(d?.fabricCost))
+        ? Number(d.fabricCost)
+        : undefined
+
+  const fabricCostCurrencyStr =
+    d?.fabricCostCurrency === 'USD' || d?.fabricCostCurrency === 'CNY'
+      ? d.fabricCostCurrency
+      : 'USD'
+
+  const requiredFabricLengthNum =
+    typeof d?.requiredFabricLength === 'number'
+      ? d.requiredFabricLength
+      : Number.isFinite(Number(d?.requiredFabricLength))
+        ? Number(d.requiredFabricLength)
+        : undefined
+
   return {
     id,
     itemNo: String(d?.itemNo ?? d?.sku ?? ''),
@@ -60,6 +79,9 @@ function toItem(id: string, d: any): Item {
     dollarPrice: dollarPriceNum,
     moq: d?.moq ? String(d.moq) : undefined,
     referencePrice: referencePriceNum,
+    fabricCost: fabricCostNum,
+    fabricCostCurrency: fabricCostCurrencyStr,
+    requiredFabricLength: requiredFabricLengthNum,
     factory: d?.factory ? String(d.factory) : undefined,
     sizeOptions: d?.sizeOptions ? String(d.sizeOptions) : undefined,
     colorOptions: d?.colorOptions ? String(d.colorOptions) : undefined,
@@ -70,6 +92,8 @@ function toItem(id: string, d: any): Item {
     patternNo: d?.patternNo ? String(d.patternNo) : undefined,
     appealPoint: d?.appealPoint ? String(d.appealPoint) : undefined,
     images: Array.isArray(d?.images) ? d.images.filter(Boolean) : [],
+    fabricImages: Array.isArray(d?.fabricImages) ? d.fabricImages.filter(Boolean) : [],
+    specFiles: Array.isArray(d?.specFiles) ? d.specFiles.filter(Boolean) : [],
     createdAt: d?.createdAt?.toDate?.() instanceof Date ? d.createdAt.toDate() : d?.createdAt instanceof Date ? d.createdAt : undefined,
     updatedAt: d?.updatedAt?.toDate?.() instanceof Date ? d.updatedAt.toDate() : d?.updatedAt instanceof Date ? d.updatedAt : undefined,
     createdBy: d?.createdBy ? String(d.createdBy) : undefined,
@@ -79,8 +103,9 @@ function toItem(id: string, d: any): Item {
 
 export interface ListItemsParams {
   q?: string // 検索クエリ（name, sku）
+  itemNoPrefix?: string // アイテムNo.プレフィックス
   status?: 'active' | 'archived' // アイテムのステータスでフィルター
-  sortBy?: 'createdAt' | 'updatedAt'
+  sortBy?: 'createdAt' | 'updatedAt' | 'sku'
   sortOrder?: 'asc' | 'desc'
   lastDoc?: QueryDocumentSnapshot
   firstDoc?: QueryDocumentSnapshot
@@ -128,6 +153,7 @@ export const itemsService = {
   async listItems(params: ListItemsParams = {}): Promise<ListItemsResult> {
     const {
       q,
+      itemNoPrefix,
       sortBy = 'updatedAt',
       sortOrder = 'desc',
       lastDoc,
@@ -162,6 +188,13 @@ export const itemsService = {
             item.name.toLowerCase().includes(searchLower) ||
             item.sku.toLowerCase().includes(searchLower)
         )
+      }
+
+      // クライアント側でアイテムNo.プレフィックスフィルタリング
+      if (itemNoPrefix && itemNoPrefix !== 'ALL' && itemNoPrefix !== 'その他') {
+        items = items.filter((item) => item.itemNo.startsWith(itemNoPrefix))
+      } else if (itemNoPrefix === 'その他') {
+        items = items.filter((item) => !item.itemNo.startsWith('NDC') && !item.itemNo.startsWith('NDF'))
       }
 
       // hasMore の判定
@@ -249,6 +282,12 @@ export const itemsService = {
       if (data.referencePrice !== undefined && (typeof data.referencePrice !== 'number' || data.referencePrice < 0)) {
         throw new Error('参考売値は0以上の数値である必要があります')
       }
+      if (data.fabricCost !== undefined && (typeof data.fabricCost !== 'number' || data.fabricCost < 0)) {
+        throw new Error('生地値は0以上の数値である必要があります')
+      }
+      if (data.requiredFabricLength !== undefined && (typeof data.requiredFabricLength !== 'number' || data.requiredFabricLength < 0)) {
+        throw new Error('要尺は0以上の数値である必要があります')
+      }
 
       const docRef = await addDoc(collection(db, COLLECTION_NAME), {
         ...data,
@@ -288,6 +327,12 @@ export const itemsService = {
       if (data.referencePrice !== undefined && (typeof data.referencePrice !== 'number' || data.referencePrice < 0)) {
         throw new Error('参考売値は0以上の数値である必要があります')
       }
+      if (data.fabricCost !== undefined && (typeof data.fabricCost !== 'number' || data.fabricCost < 0)) {
+        throw new Error('生地値は0以上の数値である必要があります')
+      }
+      if (data.requiredFabricLength !== undefined && (typeof data.requiredFabricLength !== 'number' || data.requiredFabricLength < 0)) {
+        throw new Error('要尺は0以上の数値である必要があります')
+      }
 
       const docRef = doc(db, COLLECTION_NAME, id)
       await updateDoc(docRef, {
@@ -313,6 +358,29 @@ export const itemsService = {
             await this.removeImage(id, image.path)
           } catch (error) {
             console.warn(`画像の削除に失敗: ${image.path}`, error)
+          }
+        }
+      }
+
+      // 生地画像も削除
+      if (item && item.fabricImages && item.fabricImages.length > 0) {
+        for (const image of item.fabricImages) {
+          try {
+            await this.removeFabricImage(id, image.path)
+          } catch (error) {
+            console.warn(`生地画像の削除に失敗: ${image.path}`, error)
+          }
+        }
+      }
+
+
+      // 仕様書も削除
+      if (item && item.specFiles && item.specFiles.length > 0) {
+        for (const file of item.specFiles) {
+          try {
+            await this.removeSpecFile(id, file.path)
+          } catch (error) {
+            console.warn(`仕様書の削除に失敗: ${file.path}`, error)
           }
         }
       }
@@ -398,6 +466,155 @@ export const itemsService = {
       })
     } catch (error) {
       console.error('画像削除エラー:', error)
+      throw error
+    }
+  },
+
+  /**
+   * 生地画像をアップロードして、アイテムに追加
+   */
+  async attachFabricImages(id: string, files: File[]): Promise<void> {
+    try {
+      const item = await this.getItem(id)
+      if (!item) {
+        throw new Error('アイテムが見つかりません')
+      }
+
+      const uploadedImages: { url: string; path: string }[] = []
+
+      for (const file of files) {
+        // ファイルバリデーション
+        const validImageTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif', 'image/webp']
+        if (!validImageTypes.includes(file.type)) {
+          throw new Error(`無効なファイル形式: ${file.name}`)
+        }
+        if (file.size > 10 * 1024 * 1024) {
+          throw new Error(`ファイルサイズが大きすぎます: ${file.name}（最大10MB）`)
+        }
+
+        // Storage にアップロード
+        const fileName = `fabric-${uuidv4()}-${file.name}`
+        const filePath = `items/${id}/fabric/${fileName}`
+        const downloadURL = await storageService.uploadFile(filePath, file)
+
+        uploadedImages.push({
+          url: downloadURL,
+          path: filePath,
+        })
+      }
+
+      // Firestore を更新
+      const existingImages = item.fabricImages || []
+      await this.updateItem(id, {
+        fabricImages: [...existingImages, ...uploadedImages],
+      })
+    } catch (error) {
+      console.error('生地画像アップロードエラー:', error)
+      throw error
+    }
+  },
+
+  /**
+   * 生地画像を削除
+   */
+  async removeFabricImage(id: string, path: string): Promise<void> {
+    try {
+      const item = await this.getItem(id)
+      if (!item) {
+        throw new Error('アイテムが見つかりません')
+      }
+
+      // Storage から削除
+      try {
+        const fileRef = ref(storage, path)
+        await deleteObject(fileRef)
+      } catch (error: any) {
+        if (error.code !== 'storage/object-not-found') {
+          throw error
+        }
+        console.warn('画像が Storage に存在しません:', path)
+      }
+
+      // Firestore から削除
+      const updatedImages = (item.fabricImages || []).filter((img) => img.path !== path)
+      await this.updateItem(id, {
+        fabricImages: updatedImages,
+      })
+    } catch (error) {
+      console.error('生地画像削除エラー:', error)
+      throw error
+    }
+  },
+
+  /**
+   * 仕様書ファイルをアップロードして、アイテムに追加
+   */
+  async attachSpecFiles(id: string, files: File[]): Promise<void> {
+    try {
+      const item = await this.getItem(id)
+      if (!item) {
+        throw new Error('アイテムが見つかりません')
+      }
+
+      const uploadedFiles: { url: string; path: string; name: string }[] = []
+
+      for (const file of files) {
+        // ファイルバリデーション（サイズのみチェック、形式は問わないが画像とPDF推奨）
+        if (file.size > 20 * 1024 * 1024) { // 仕様書は少し大きめを許可 (20MB)
+          throw new Error(`ファイルサイズが大きすぎます: ${file.name}（最大20MB）`)
+        }
+
+        // Storage にアップロード
+        const fileName = `spec-${uuidv4()}-${file.name}`
+        const filePath = `items/${id}/specs/${fileName}`
+        const downloadURL = await storageService.uploadFile(filePath, file)
+
+        uploadedFiles.push({
+          url: downloadURL,
+          path: filePath,
+          name: file.name
+        })
+      }
+
+      // Firestore を更新
+      const existingFiles = item.specFiles || []
+      await this.updateItem(id, {
+        specFiles: [...existingFiles, ...uploadedFiles],
+      })
+    } catch (error) {
+      console.error('仕様書アップロードエラー:', error)
+      throw error
+    }
+  },
+
+  /**
+   * 仕様書ファイルを削除
+   */
+  async removeSpecFile(id: string, path: string): Promise<void> {
+    try {
+      const item = await this.getItem(id)
+      if (!item) {
+        throw new Error('アイテムが見つかりません')
+      }
+
+      // Storage から削除
+      try {
+        const fileRef = ref(storage, path)
+        await deleteObject(fileRef)
+      } catch (error: any) {
+        if (error.code !== 'storage/object-not-found') {
+          throw error
+        }
+        console.warn('ファイルが Storage に存在しません:', path)
+      }
+
+      // Firestore から削除
+      const updatedFiles = (item.specFiles || []).filter((file) => file.path !== path)
+      await this.updateItem(id, {
+        specFiles: updatedFiles,
+      })
+    } catch (error) {
+      console.error('仕様書削除エラー:', error)
       throw error
     }
   },

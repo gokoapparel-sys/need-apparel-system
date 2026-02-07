@@ -24,6 +24,9 @@ export interface Item {
   dollarPrice?: number // ＄単価
   moq?: string // 単価枚数条件
   referencePrice?: number // 売単価（参考）
+  fabricCost?: number // 生地値
+  fabricCostCurrency?: 'USD' | 'CNY' // 生地値通貨（USDかCNY）
+  requiredFabricLength?: number // 要尺（ｍ）
   factory?: string // 工場名
   sizeOptions?: string // サイズ展開（カンマ区切り）- 後方互換性のため残す
   colorOptions?: string // 色展開（カンマ区切り）- 後方互換性のため残す
@@ -36,6 +39,15 @@ export interface Item {
   images?: {
     url: string
     path: string
+  }[]
+  fabricImages?: {
+    url: string
+    path: string
+  }[]
+  specFiles?: {
+    url: string
+    path: string
+    name?: string // ファイル名（表示用）
   }[]
   createdAt?: Timestamp
   updatedAt?: Timestamp

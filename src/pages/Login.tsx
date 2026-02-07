@@ -29,20 +29,20 @@ const Login: React.FC = () => {
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-primary-50 to-primary-100">
       <div className="card max-w-md w-full">
-        {/* GOKO Logo */}
+        {/* NEED Logo */}
         <div className="flex justify-center mb-6">
           <img
-            src="/goko-logo.svg"
-            alt="GOKO"
+            src="/need-logo.svg"
+            alt="NEED"
             className="h-10"
           />
         </div>
 
         <h1 className="text-3xl font-bold text-center mb-1 text-primary-700">
-          アパレル商品管理システム
+          ニード商品管理システム
         </h1>
-        <p className="text-center text-sm text-gray-600 mb-1">株式会社 互興</p>
-        <p className="text-center text-xs text-gray-500 mb-8">GOKO Co.,Ltd.</p>
+        <p className="text-center text-sm text-gray-600 mb-1">株式会社ニード</p>
+        <p className="text-center text-xs text-gray-500 mb-8">NEED Co., Ltd.</p>
         <p className="text-center text-gray-600 mb-8 font-semibold">ログイン</p>
 
         {error && (

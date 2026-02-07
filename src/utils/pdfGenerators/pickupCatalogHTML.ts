@@ -59,7 +59,8 @@ export function generatePickupCatalogHTML({ pickup, items, imageBase64Map }: Pic
 
         /* 表紙スタイル */
         .cover-page {
-          background: linear-gradient(135deg, #064e3b 0%, #059669 50%, #10b981 100%);
+          /* Rose Pink Gradient for Customer - Feminine and Elegant */
+          background: linear-gradient(135deg, #f472b6 0%, #db2777 50%, #be185d 100%);
           display: flex;
           flex-direction: column;
           justify-content: center;
@@ -76,7 +77,7 @@ export function generatePickupCatalogHTML({ pickup, items, imageBase64Map }: Pic
           right: -20%;
           width: 600px;
           height: 600px;
-          background: radial-gradient(circle, rgba(251, 191, 36, 0.15) 0%, transparent 70%);
+          background: radial-gradient(circle, rgba(255, 255, 255, 0.2) 0%, transparent 70%);
           border-radius: 50%;
         }
 
@@ -87,7 +88,7 @@ export function generatePickupCatalogHTML({ pickup, items, imageBase64Map }: Pic
           left: -20%;
           width: 500px;
           height: 500px;
-          background: radial-gradient(circle, rgba(16, 185, 129, 0.2) 0%, transparent 70%);
+          background: radial-gradient(circle, rgba(255, 255, 255, 0.15) 0%, transparent 70%);
           border-radius: 50%;
         }
 
@@ -101,16 +102,16 @@ export function generatePickupCatalogHTML({ pickup, items, imageBase64Map }: Pic
         .cover-logo {
           width: 240px;
           height: 60px;
-          background: linear-gradient(to right, #fbbf24, #f59e0b);
+          background: white;
           margin: 0 auto 40px;
           border-radius: 12px;
           display: flex;
-          align-items: flex-start;
+          align-items: center;
           justify-content: center;
           font-size: 36px;
           font-weight: 900;
-          color: #064e3b;
-          box-shadow: 0 10px 30px rgba(251, 191, 36, 0.4);
+          color: #be185d; /* Deep Pink Logo Text */
+          box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
           letter-spacing: 6px;
           line-height: 1;
           padding-top: 3px;
@@ -124,13 +125,14 @@ export function generatePickupCatalogHTML({ pickup, items, imageBase64Map }: Pic
           color: white;
           text-align: center;
           line-height: 1.5;
+          text-shadow: 0 1px 2px rgba(0,0,0,0.1);
         }
 
         .cover-title {
           font-size: 56px;
           font-weight: bold;
           margin-bottom: 25px;
-          text-shadow: 3px 3px 6px rgba(0,0,0,0.4);
+          text-shadow: 0 2px 5px rgba(0,0,0,0.1);
           line-height: 1.2;
           letter-spacing: 2px;
         }
@@ -152,15 +154,14 @@ export function generatePickupCatalogHTML({ pickup, items, imageBase64Map }: Pic
 
         .cover-badge {
           display: inline-block;
-          background: linear-gradient(135deg, #10b981 0%, #059669 100%);
-          color: white;
+          background: white;
+          color: #db2777; /* Pink Text */
           padding: 14px 40px;
           border-radius: 30px;
           margin-top: 20px;
           font-size: 16px;
           font-weight: bold;
-          border: 3px solid white;
-          box-shadow: 0 8px 20px rgba(16, 185, 129, 0.4);
+          box-shadow: 0 8px 20px rgba(0,0,0,0.1);
           letter-spacing: 1px;
         }
 
@@ -168,22 +169,22 @@ export function generatePickupCatalogHTML({ pickup, items, imageBase64Map }: Pic
           position: absolute;
           bottom: 30px;
           text-align: center;
-          color: rgba(255,255,255,0.7);
+          color: rgba(255,255,255,0.8);
           font-size: 12px;
         }
 
         /* コンテンツページスタイル */
         .content-page {
           padding: 15px 20px;
-          background: linear-gradient(to bottom, #f0fdf4 0%, #ffffff 100%);
+          background: linear-gradient(to bottom, #fff1f2 0%, #ffffff 100%); /* Rose bg */
         }
 
         .page-header {
           margin-bottom: 8px;
           padding: 8px 12px;
-          background: linear-gradient(135deg, #064e3b 0%, #059669 100%);
+          background: linear-gradient(135deg, #ec4899 0%, #be185d 100%); /* Pink Gradient */
           border-radius: 6px;
-          box-shadow: 0 2px 10px rgba(6, 78, 59, 0.2);
+          box-shadow: 0 2px 10px rgba(190, 24, 93, 0.2);
           text-align: left;
         }
 
@@ -197,7 +198,7 @@ export function generatePickupCatalogHTML({ pickup, items, imageBase64Map }: Pic
 
         .page-subtitle {
           font-size: 12px;
-          color: #d1fae5;
+          color: rgba(255,255,255,0.9);
         }
 
         .items-grid {
@@ -211,7 +212,7 @@ export function generatePickupCatalogHTML({ pickup, items, imageBase64Map }: Pic
           padding: 8px;
           border-radius: 8px;
           background: white;
-          box-shadow: 0 2px 10px rgba(6, 78, 59, 0.1);
+          box-shadow: 0 2px 10px rgba(190, 24, 93, 0.08); /* Pink shadow */
           position: relative;
           overflow: hidden;
         }
@@ -223,7 +224,7 @@ export function generatePickupCatalogHTML({ pickup, items, imageBase64Map }: Pic
           left: 0;
           width: 100%;
           height: 3px;
-          background: linear-gradient(to right, #10b981, #fbbf24);
+          background: linear-gradient(to right, #f472b6, #db2777);
         }
 
         .item-image {
@@ -238,7 +239,7 @@ export function generatePickupCatalogHTML({ pickup, items, imageBase64Map }: Pic
           margin-bottom: 6px;
           border-radius: 6px;
           overflow: hidden;
-          border: 1px solid #e5e7eb;
+          border: 1px solid #fce7f3;
         }
 
         .item-image img {
@@ -252,17 +253,17 @@ export function generatePickupCatalogHTML({ pickup, items, imageBase64Map }: Pic
         .item-no {
           font-size: 20px;
           font-weight: bold;
-          color: #064e3b;
+          color: #831843; /* Dark Pink */
           margin-bottom: 4px;
           letter-spacing: 0.5px;
           padding-bottom: 4px;
-          border-bottom: 2px solid #d1fae5;
+          border-bottom: 2px solid #fbcfe8;
         }
 
         .item-name {
           font-size: 13px;
           font-weight: bold;
-          color: #059669;
+          color: #9d174d; /* Medium Pink */
           margin-bottom: 6px;
           line-height: 1.4;
           min-height: 36px;
@@ -278,11 +279,11 @@ export function generatePickupCatalogHTML({ pickup, items, imageBase64Map }: Pic
           display: inline-block;
           min-width: 50px;
           font-weight: bold;
-          color: #64748b;
+          color: #94a3b8;
         }
 
         .field-value {
-          color: #1e293b;
+          color: #334155;
         }
 
         .page-footer {
@@ -292,8 +293,8 @@ export function generatePickupCatalogHTML({ pickup, items, imageBase64Map }: Pic
           right: 40px;
           text-align: center;
           padding-top: 10px;
-          border-top: 1px solid #ddd;
-          color: #999;
+          border-top: 1px solid #e2e8f0;
+          color: #94a3b8;
           font-size: 10px;
         }
       </style>
@@ -302,8 +303,8 @@ export function generatePickupCatalogHTML({ pickup, items, imageBase64Map }: Pic
       <!-- 表紙 -->
       <div class="pdf-page cover-page">
         <div class="cover-content">
-          <div class="cover-logo">GOKO</div>
-          <div class="cover-company">株式会社 互興 | GOKO Co.,Ltd.</div>
+          <div class="cover-logo">NEED</div>
+          <div class="cover-company">株式会社ニード | NEED Co., Ltd.</div>
           <div class="cover-title">ピックアップリスト</div>
           <div class="cover-subtitle">${pickup.customerName} 様</div>
           <div class="cover-info">展示会: ${pickup.exhibitionName || '-'}</div>
@@ -311,7 +312,7 @@ export function generatePickupCatalogHTML({ pickup, items, imageBase64Map }: Pic
           <div class="cover-info">コード: ${pickup.pickupCode}</div>
           <div class="cover-badge">選択アイテム一覧</div>
         </div>
-        <div class="cover-footer">株式会社 互興 GOKO Co.,Ltd.</div>
+        <div class="cover-footer">株式会社ニード NEED Co., Ltd.</div>
       </div>
 
       <!-- 商品ページ -->
@@ -327,23 +328,23 @@ export function generatePickupCatalogHTML({ pickup, items, imageBase64Map }: Pic
               <div class="item-card">
                 <div class="item-image">
                   ${(() => {
-                    if (item.images && item.images.length > 0) {
-                      const imageUrl = item.images[0].url
-                      const base64Image = imageBase64Map && imageBase64Map[imageUrl]
+      if (item.images && item.images.length > 0) {
+        const imageUrl = item.images[0].url
+        const base64Image = imageBase64Map && imageBase64Map[imageUrl]
 
-                      if (base64Image && base64Image.startsWith('data:image/')) {
-                        return `<img src="${base64Image}" alt="${item.name}" />`
-                      } else {
-                        console.warn('画像データが見つかりません:', item.itemNo, imageUrl)
-                        return '<div style="color: #999; font-size: 10px;">画像なし</div>'
-                      }
-                    } else {
-                      return '<div style="color: #999; font-size: 10px;">画像なし</div>'
-                    }
-                  })()}
+        if (base64Image && base64Image.startsWith('data:image/')) {
+          return `<img src="${base64Image}" alt="${item.name}" />`
+        } else {
+          console.warn('画像データが見つかりません:', item.itemNo, imageUrl)
+          return '<div style="color: #999; font-size: 10px;">画像なし</div>'
+        }
+      } else {
+        return '<div style="color: #999; font-size: 10px;">画像なし</div>'
+      }
+    })()}
                 </div>
                 <div class="item-no">${item.itemNo}</div>
-                <div class="item-name">${item.name}</div>
+                <div class="item-name">${item.name.replace(/[\s\u3000（(]/g, (match) => match === ' ' || match === '　' ? '' : '<br />' + match)}</div>
                 <div class="item-field">
                   <span class="field-label">混率:</span>
                   <span class="field-value">${item.composition || '-'}</span>
@@ -357,7 +358,7 @@ export function generatePickupCatalogHTML({ pickup, items, imageBase64Map }: Pic
           </div>
 
           <div class="page-footer">
-            株式会社 互興 GOKO Co.,Ltd. | ページ ${pageIndex + 2} / ${pages.length + 1}
+            株式会社ニード NEED Co., Ltd. | ページ ${pageIndex + 2} / ${pages.length + 1}
           </div>
         </div>
       `).join('')}

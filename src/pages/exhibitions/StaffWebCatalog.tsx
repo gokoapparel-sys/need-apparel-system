@@ -66,7 +66,9 @@ const StaffWebCatalog: React.FC = () => {
       const catalogItemIds = exhibitionData?.catalogItemIds || []
       if (catalogItemIds.length > 0) {
         const allItems = await itemsService.listAllItems()
-        const catalogItems = allItems.filter(item => catalogItemIds.includes(item.id!))
+        const catalogItems = allItems
+          .filter(item => catalogItemIds.includes(item.id!))
+          .sort((a, b) => a.itemNo.localeCompare(b.itemNo, undefined, { numeric: true, sensitivity: 'base' }))
         setItems(catalogItems)
 
         // 各アイテムのQRコードを生成
@@ -238,11 +240,11 @@ const StaffWebCatalog: React.FC = () => {
         <div className="header-content">
           <div className="header-left">
             <div className="logo-box">
-              <img src="/goko-logo.svg" alt="GOKO" className="logo-image" />
+              <img src="/need-logo.svg" alt="NEED" className="logo-image" />
             </div>
             <div className="company-info">
-              <div>株式会社 互興</div>
-              <div>GOKO Co.,Ltd.</div>
+              <div>株式会社ニード</div>
+              <div>NEED Co., Ltd.</div>
             </div>
           </div>
           <div className="header-center">
@@ -366,7 +368,7 @@ const StaffWebCatalog: React.FC = () => {
 
             <div className="item-info">
               <div className="item-no">{item.itemNo}</div>
-              <div className="item-name">{item.name}</div>
+              <div className="item-name" style={{ whiteSpace: 'pre-wrap' }}>{item.name.replace(/[\s\u3000（(]/g, (match) => match === ' ' || match === '　' ? '' : '\n' + match)}</div>
 
               <div className="item-field">
                 <span className="label">生地名:</span>
@@ -406,7 +408,7 @@ const StaffWebCatalog: React.FC = () => {
 
       {/* 印刷用フッター */}
       <footer className="catalog-footer print-only">
-        株式会社 互興 アパレル商品管理システム - 管理者用カタログ（社外秘）
+        株式会社ニード ニード商品管理システム - 管理者用カタログ（社外秘）
       </footer>
 
       {/* 画像拡大モーダル */}

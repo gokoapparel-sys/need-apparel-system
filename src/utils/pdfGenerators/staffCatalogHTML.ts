@@ -59,7 +59,8 @@ export function generateStaffCatalogHTML({ exhibition, items, imageBase64Map }: 
 
         /* 表紙スタイル */
         .cover-page {
-          background: linear-gradient(135deg, #0f172a 0%, #1e3a8a 50%, #2563eb 100%);
+          /* Sky Blue Gradient for Staff/Admin - Fresh and Trustworthy */
+          background: linear-gradient(135deg, #7dd3fc 0%, #38bdf8 50%, #0ea5e9 100%);
           display: flex;
           flex-direction: column;
           justify-content: center;
@@ -76,7 +77,7 @@ export function generateStaffCatalogHTML({ exhibition, items, imageBase64Map }: 
           right: -20%;
           width: 600px;
           height: 600px;
-          background: radial-gradient(circle, rgba(251, 191, 36, 0.15) 0%, transparent 70%);
+          background: radial-gradient(circle, rgba(255, 255, 255, 0.2) 0%, transparent 70%);
           border-radius: 50%;
         }
 
@@ -87,7 +88,7 @@ export function generateStaffCatalogHTML({ exhibition, items, imageBase64Map }: 
           left: -20%;
           width: 500px;
           height: 500px;
-          background: radial-gradient(circle, rgba(37, 99, 235, 0.2) 0%, transparent 70%);
+          background: radial-gradient(circle, rgba(255, 255, 255, 0.15) 0%, transparent 70%);
           border-radius: 50%;
         }
 
@@ -101,16 +102,16 @@ export function generateStaffCatalogHTML({ exhibition, items, imageBase64Map }: 
         .cover-logo {
           width: 240px;
           height: 60px;
-          background: linear-gradient(to right, #fbbf24, #f59e0b);
+          background: white; 
           margin: 0 auto 40px;
           border-radius: 12px;
           display: flex;
-          align-items: flex-start;
+          align-items: center;
           justify-content: center;
           font-size: 36px;
           font-weight: 900;
-          color: #0f172a;
-          box-shadow: 0 10px 30px rgba(251, 191, 36, 0.4);
+          color: #0ea5e9; /* Sky Blue Logo Text */
+          box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
           letter-spacing: 6px;
           line-height: 1;
           padding-top: 3px;
@@ -124,13 +125,14 @@ export function generateStaffCatalogHTML({ exhibition, items, imageBase64Map }: 
           color: white;
           text-align: center;
           line-height: 1.5;
+          text-shadow: 0 1px 2px rgba(0,0,0,0.1);
         }
 
         .cover-title {
           font-size: 56px;
           font-weight: bold;
           margin-bottom: 25px;
-          text-shadow: 3px 3px 6px rgba(0,0,0,0.4);
+          text-shadow: 0 2px 5px rgba(0,0,0,0.1);
           line-height: 1.2;
           letter-spacing: 2px;
         }
@@ -152,15 +154,14 @@ export function generateStaffCatalogHTML({ exhibition, items, imageBase64Map }: 
 
         .cover-badge {
           display: inline-block;
-          background: linear-gradient(135deg, #dc2626 0%, #991b1b 100%);
-          color: white;
+          background: white;
+          color: #0ea5e9; /* Sky Blue Text */
           padding: 14px 40px;
           border-radius: 30px;
           margin-top: 20px;
           font-size: 16px;
           font-weight: bold;
-          border: 3px solid white;
-          box-shadow: 0 8px 20px rgba(220, 38, 38, 0.4);
+          box-shadow: 0 8px 20px rgba(0,0,0,0.1);
           letter-spacing: 1px;
         }
 
@@ -168,22 +169,22 @@ export function generateStaffCatalogHTML({ exhibition, items, imageBase64Map }: 
           position: absolute;
           bottom: 30px;
           text-align: center;
-          color: rgba(255,255,255,0.7);
+          color: rgba(255,255,255,0.8);
           font-size: 12px;
         }
 
         /* コンテンツページスタイル */
         .content-page {
           padding: 15px 20px;
-          background: linear-gradient(to bottom, #f8fafc 0%, #ffffff 100%);
+          background: linear-gradient(to bottom, #f0f9ff 0%, #ffffff 100%); /* Light Sky Blue bg */
         }
 
         .page-header {
           margin-bottom: 8px;
           padding: 10px 12px;
-          background: linear-gradient(135deg, #0f172a 0%, #1e3a8a 100%);
+          background: linear-gradient(135deg, #7dd3fc 0%, #0ea5e9 100%); /* Sky Blue Gradient */
           border-radius: 6px;
-          box-shadow: 0 2px 6px rgba(15, 23, 42, 0.2);
+          box-shadow: 0 2px 6px rgba(14, 165, 233, 0.2);
           text-align: center;
         }
 
@@ -197,7 +198,7 @@ export function generateStaffCatalogHTML({ exhibition, items, imageBase64Map }: 
 
         .page-subtitle {
           font-size: 12px;
-          color: #cbd5e1;
+          color: rgba(255,255,255,0.9);
         }
 
         .items-grid {
@@ -211,7 +212,7 @@ export function generateStaffCatalogHTML({ exhibition, items, imageBase64Map }: 
           padding: 6px;
           border-radius: 8px;
           background: white;
-          box-shadow: 0 2px 10px rgba(15, 23, 42, 0.12);
+          box-shadow: 0 2px 10px rgba(15, 23, 42, 0.08); /* Softer shadow */
           transition: transform 0.2s;
           position: relative;
           overflow: hidden;
@@ -224,7 +225,7 @@ export function generateStaffCatalogHTML({ exhibition, items, imageBase64Map }: 
           left: 0;
           width: 100%;
           height: 4px;
-          background: linear-gradient(to right, #2563eb, #fbbf24);
+          background: linear-gradient(to right, #7dd3fc, #0ea5e9);
         }
 
         .item-image {
@@ -239,7 +240,7 @@ export function generateStaffCatalogHTML({ exhibition, items, imageBase64Map }: 
           margin-bottom: 4px;
           border-radius: 4px;
           overflow: hidden;
-          border: 1px solid #e5e7eb;
+          border: 1px solid #f1f5f9;
         }
 
         .item-image img {
@@ -253,20 +254,22 @@ export function generateStaffCatalogHTML({ exhibition, items, imageBase64Map }: 
         .item-no {
           font-size: 16px;
           font-weight: bold;
-          color: #0f172a;
+          color: #334155;
           margin-bottom: 4px;
           letter-spacing: 0.5px;
           padding-bottom: 3px;
           border-bottom: 1px solid #e2e8f0;
+          text-align: center; /* 中央寄せ */
         }
 
         .item-name {
           font-size: 11px;
           font-weight: bold;
-          color: #2563eb;
+          color: #0284c7; /* Darker Sky Blue text */
           margin-bottom: 5px;
           line-height: 1.3;
           min-height: 22px;
+          text-align: center; /* 中央寄せ */
         }
 
         .item-field {
@@ -279,11 +282,11 @@ export function generateStaffCatalogHTML({ exhibition, items, imageBase64Map }: 
           display: inline-block;
           min-width: 65px;
           font-weight: bold;
-          color: #64748b;
+          color: #94a3b8;
         }
 
         .field-value {
-          color: #1e293b;
+          color: #334155;
         }
 
         .page-footer {
@@ -293,8 +296,8 @@ export function generateStaffCatalogHTML({ exhibition, items, imageBase64Map }: 
           right: 40px;
           text-align: center;
           padding-top: 10px;
-          border-top: 1px solid #ddd;
-          color: #999;
+          border-top: 1px solid #e2e8f0;
+          color: #94a3b8;
           font-size: 10px;
         }
       </style>
@@ -303,15 +306,15 @@ export function generateStaffCatalogHTML({ exhibition, items, imageBase64Map }: 
       <!-- 表紙 -->
       <div class="pdf-page cover-page">
         <div class="cover-content">
-          <div class="cover-logo">GOKO</div>
-          <div class="cover-company">株式会社 互興 | GOKO Co.,Ltd.</div>
+          <div class="cover-logo">NEED</div>
+          <div class="cover-company">株式会社ニード | NEED Co., Ltd.</div>
           <div class="cover-title">${exhibition.exhibitionName}</div>
           <div class="cover-subtitle">管理者用カタログ</div>
           <div class="cover-info">期間: ${formatDate(exhibition.startDate)} - ${formatDate(exhibition.endDate)}</div>
           <div class="cover-info">会場: ${exhibition.location}</div>
           <div class="cover-badge">社外秘 - Internal Use Only</div>
         </div>
-        <div class="cover-footer">株式会社 互興 アパレル商品管理システム</div>
+        <div class="cover-footer">株式会社ニード ニード商品管理システム</div>
       </div>
 
       <!-- 商品ページ -->
@@ -327,23 +330,23 @@ export function generateStaffCatalogHTML({ exhibition, items, imageBase64Map }: 
               <div class="item-card">
                 <div class="item-image">
                   ${(() => {
-                    if (item.images && item.images.length > 0) {
-                      const imageUrl = item.images[0].url
-                      const base64Image = imageBase64Map && imageBase64Map[imageUrl]
+      if (item.images && item.images.length > 0) {
+        const imageUrl = item.images[0].url
+        const base64Image = imageBase64Map && imageBase64Map[imageUrl]
 
-                      if (base64Image && base64Image.startsWith('data:image/')) {
-                        return `<img src="${base64Image}" alt="${item.name}" />`
-                      } else {
-                        console.warn('画像データが見つかりません:', item.itemNo, imageUrl)
-                        return '<div style="color: #999; font-size: 11px;">画像なし</div>'
-                      }
-                    } else {
-                      return '<div style="color: #999; font-size: 11px;">画像なし</div>'
-                    }
-                  })()}
+        if (base64Image && base64Image.startsWith('data:image/')) {
+          return `<img src="${base64Image}" alt="${item.name}" />`
+        } else {
+          console.warn('画像データが見つかりません:', item.itemNo, imageUrl)
+          return '<div style="color: #999; font-size: 11px;">画像なし</div>'
+        }
+      } else {
+        return '<div style="color: #999; font-size: 11px;">画像なし</div>'
+      }
+    })()}
                 </div>
                 <div class="item-no">${item.itemNo}</div>
-                <div class="item-name">${item.name}</div>
+                <div class="item-name">${item.name.replace(/[\s\u3000（(]/g, (match) => match === ' ' || match === '　' ? '' : '<br />' + match)}</div>
                 <div class="item-field">
                   <span class="field-label">混率:</span>
                   <span class="field-value">${item.composition || '-'}</span>
@@ -369,7 +372,7 @@ export function generateStaffCatalogHTML({ exhibition, items, imageBase64Map }: 
           </div>
 
           <div class="page-footer">
-            株式会社 互興 GOKO Co.,Ltd. | ページ ${pageIndex + 2} / ${pages.length + 1} | 管理者用（社外秘）
+            株式会社ニード NEED Co., Ltd. | ページ ${pageIndex + 2} / ${pages.length + 1} | 管理者用（社外秘）
           </div>
         </div>
       `).join('')}

@@ -21,6 +21,7 @@ const ExhibitionDetail: React.FC = () => {
   const [allItems, setAllItems] = useState<Item[]>([])
   const [selectedItemIds, setSelectedItemIds] = useState<string[]>([])
   const [searchQuery, setSearchQuery] = useState('')
+  const [itemNoPrefixFilter, setItemNoPrefixFilter] = useState('ALL')
   const [createdByFilter, setCreatedByFilter] = useState('')
   const [plannerIdFilter, setPlannerIdFilter] = useState('')
   const [savingCatalog, setSavingCatalog] = useState(false)
@@ -54,7 +55,13 @@ const ExhibitionDetail: React.FC = () => {
   const loadAllItems = async () => {
     try {
       const items = await itemsService.listAllItems({ status: 'active' })
-      setAllItems(items)
+
+      // アイテムナンバーの若い順にソート (数値部分を考慮)
+      const sortedItems = items.sort((a, b) => {
+        return a.itemNo.localeCompare(b.itemNo, undefined, { numeric: true, sensitivity: 'base' })
+      })
+
+      setAllItems(sortedItems)
     } catch (error) {
       console.error('アイテム読み込みエラー:', error)
     }
@@ -104,8 +111,10 @@ const ExhibitionDetail: React.FC = () => {
     try {
       console.log('=== 管理者用PDF出力開始 ===')
 
-      // 選択されたアイテムのみを取得
-      const catalogItems = allItems.filter(item => selectedItemIds.includes(item.id!))
+      // 選択されたアイテムのみを取得し、アイテムNo順にソート
+      const catalogItems = allItems
+        .filter(item => selectedItemIds.includes(item.id!))
+        .sort((a, b) => a.itemNo.localeCompare(b.itemNo, undefined, { numeric: true, sensitivity: 'base' }))
       console.log('カタログアイテム数:', catalogItems.length)
 
       if (catalogItems.length === 0) {
@@ -170,8 +179,10 @@ const ExhibitionDetail: React.FC = () => {
     try {
       console.log('=== お客様用PDF出力開始 ===')
 
-      // 選択されたアイテムのみを取得
-      const catalogItems = allItems.filter(item => selectedItemIds.includes(item.id!))
+      // 選択されたアイテムのみを取得し、アイテムNo順にソート
+      const catalogItems = allItems
+        .filter(item => selectedItemIds.includes(item.id!))
+        .sort((a, b) => a.itemNo.localeCompare(b.itemNo, undefined, { numeric: true, sensitivity: 'base' }))
       console.log('カタログアイテム数:', catalogItems.length)
 
       if (catalogItems.length === 0) {
@@ -234,8 +245,10 @@ const ExhibitionDetail: React.FC = () => {
     if (!exhibition) return
 
     try {
-      // 選択されたアイテムのみを取得
-      const catalogItems = allItems.filter(item => selectedItemIds.includes(item.id!))
+      // 選択されたアイテムのみを取得し、アイテムNo順にソート
+      const catalogItems = allItems
+        .filter(item => selectedItemIds.includes(item.id!))
+        .sort((a, b) => a.itemNo.localeCompare(b.itemNo, undefined, { numeric: true, sensitivity: 'base' }))
 
       if (catalogItems.length === 0) {
         alert('カタログアイテムが選択されていません')
@@ -273,6 +286,50 @@ const ExhibitionDetail: React.FC = () => {
       console.error('PDF出力エラー:', error)
       alert('PDF出力に失敗しました')
     }
+  }
+
+  const handleExportCSV = () => {
+    if (!exhibition) return
+
+    // 選択されたアイテムのみを取得し、アイテムNo順にソート
+    const catalogItems = allItems
+      .filter(item => selectedItemIds.includes(item.id!))
+      .sort((a, b) => a.itemNo.localeCompare(b.itemNo, undefined, { numeric: true, sensitivity: 'base' }))
+
+    if (catalogItems.length === 0) {
+      alert('カタログアイテムが選択されていません')
+      return
+    }
+
+    // CSVヘッダー
+    const headers = ['アイテムNo.', 'アイテム名', '生地No.', '$単価', '生地値', '要尺', '工場名', '企画者ID']
+
+    // CSVデータ行
+    const rows = catalogItems.map(item => [
+      item.itemNo,
+      item.name,
+      item.fabricNo || '',
+      item.dollarPrice ? `${item.dollarPrice}` : '',
+      item.fabricCost ? `${item.fabricCost} ${item.fabricCostCurrency || 'USD'}` : '',
+      item.requiredFabricLength ? `${item.requiredFabricLength} m/pc` : '',
+      item.factory || '',
+      item.plannerId || ''
+    ])
+
+    // CSV文字列の生成
+    const csvContent = [
+      headers.join(','),
+      ...rows.map(row => row.map(field => `"${String(field).replace(/"/g, '""')}"`).join(','))
+    ].join('\n')
+
+    // BOM付きで保存 (Excel等での文字化け防止)
+    const blob = new Blob([new Uint8Array([0xEF, 0xBB, 0xBF]), csvContent], { type: 'text/csv;charset=utf-8;' })
+    const url = URL.createObjectURL(blob)
+    const link = document.createElement('a')
+    link.href = url
+    link.download = `${exhibition.exhibitionCode}_アイテムリスト.csv`
+    link.click()
+    URL.revokeObjectURL(url)
   }
 
   // 日付フォーマット
@@ -445,48 +502,45 @@ const ExhibitionDetail: React.FC = () => {
               <div className="flex flex-wrap gap-2 justify-end">
                 <button
                   onClick={() => navigate(`/exhibitions/${id}/staff-catalog`)}
-                  className="inline-flex items-center px-5 py-2.5 bg-blue-900 text-amber-100 font-medium rounded-lg hover:bg-blue-950 transition-all shadow-sm"
+                  className="inline-flex items-center px-5 py-2.5 bg-sky-500 text-white font-bold rounded-full border-b-4 border-sky-700 hover:bg-sky-400 hover:border-sky-600 active:border-b-0 active:translate-y-1 transition-all shadow-md"
                 >
                   管理者用WEBカタログ
                 </button>
                 <button
                   onClick={handleExportStaffPDF}
                   disabled={selectedItemIds.length === 0}
-                  className="inline-flex items-center px-5 py-2.5 bg-blue-900 text-white font-medium rounded-lg hover:bg-blue-950 transition-all shadow-sm disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="inline-flex items-center px-5 py-2.5 bg-sky-600 text-white font-bold rounded-full border-b-4 border-sky-800 hover:bg-sky-500 hover:border-sky-700 active:border-b-0 active:translate-y-1 transition-all shadow-md disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none disabled:border-b-4"
                 >
                   管理者用PDF出力
                 </button>
-                <button
-                  onClick={() => {
-                    if (exhibition.description && exhibition.description.startsWith('/')) {
-                      navigate(exhibition.description)
-                    } else {
-                      navigate(`/exhibitions/${id}/landing`)
-                    }
-                  }}
-                  className="inline-flex items-center px-5 py-2.5 bg-purple-700 text-white font-medium rounded-lg hover:bg-purple-800 transition-all shadow-sm"
-                >
-                  展示会LP
-                </button>
+
                 <button
                   onClick={() => navigate(`/exhibitions/${id}/customer-catalog`)}
-                  className="inline-flex items-center px-5 py-2.5 bg-teal-700 text-amber-100 font-medium rounded-lg hover:bg-teal-800 transition-all shadow-sm"
+                  className="inline-flex items-center px-5 py-2.5 bg-rose-400 text-white font-bold rounded-full border-b-4 border-rose-600 hover:bg-rose-300 hover:border-rose-500 active:border-b-0 active:translate-y-1 transition-all shadow-md"
                 >
                   お客様用WEBカタログ
                 </button>
                 <button
                   onClick={handleExportCustomerPDF}
                   disabled={selectedItemIds.length === 0}
-                  className="inline-flex items-center px-5 py-2.5 bg-teal-700 text-white font-medium rounded-lg hover:bg-teal-800 transition-all shadow-sm disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="inline-flex items-center px-5 py-2.5 bg-rose-500 text-white font-bold rounded-full border-b-4 border-rose-700 hover:bg-rose-400 hover:border-rose-600 active:border-b-0 active:translate-y-1 transition-all shadow-md disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none disabled:border-b-4"
                 >
                   お客様用PDF出力
                 </button>
                 <button
                   onClick={handleExportTagLabelPDF}
                   disabled={selectedItemIds.length === 0}
-                  className="inline-flex items-center px-5 py-2.5 bg-gray-600 text-white font-medium rounded-lg hover:bg-gray-700 transition-all shadow-sm disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="inline-flex items-center px-5 py-2.5 bg-slate-500 text-white font-bold rounded-full border-b-4 border-slate-700 hover:bg-slate-400 hover:border-slate-600 active:border-b-0 active:translate-y-1 transition-all shadow-md disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none disabled:border-b-4"
                 >
                   下げ札ダウンロード
+                </button>
+                <button
+                  onClick={handleExportCSV}
+                  disabled={selectedItemIds.length === 0}
+                  className="inline-flex items-center px-5 py-2.5 bg-gray-200 text-gray-700 font-bold rounded-full border-b-4 border-gray-400 hover:bg-gray-300 hover:border-gray-500 active:border-b-0 active:translate-y-1 transition-all shadow-md disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none disabled:border-b-4"
+                  title="CSV出力"
+                >
+                  CSV出力
                 </button>
               </div>
             </div>
@@ -503,6 +557,16 @@ const ExhibitionDetail: React.FC = () => {
                   onChange={(e) => setSearchQuery(e.target.value)}
                   className="flex-[2] px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500"
                 />
+                <select
+                  value={itemNoPrefixFilter}
+                  onChange={(e) => setItemNoPrefixFilter(e.target.value)}
+                  className="w-32 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500"
+                >
+                  <option value="ALL">すべて</option>
+                  <option value="NDC">NDC</option>
+                  <option value="NDF">NDF</option>
+                  <option value="その他">その他</option>
+                </select>
                 <select
                   value={createdByFilter}
                   onChange={(e) => setCreatedByFilter(e.target.value)}
@@ -555,19 +619,22 @@ const ExhibitionDetail: React.FC = () => {
                       アイテム名
                     </th>
                     <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">
-                      混率
+                      ＄単価
                     </th>
                     <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">
                       生地No.
                     </th>
                     <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">
-                      ＄単価
+                      生地値
+                    </th>
+                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                      要尺
                     </th>
                     <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">
                       工場
                     </th>
                     <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">
-                      企画担当者ID
+                      企画者ID
                     </th>
                   </tr>
                 </thead>
@@ -578,14 +645,18 @@ const ExhibitionDetail: React.FC = () => {
                         (item.itemNo.toLowerCase().includes(searchQuery.toLowerCase()) ||
                           item.name.toLowerCase().includes(searchQuery.toLowerCase())) &&
                         (createdByFilter === '' || item.createdBy === createdByFilter) &&
-                        (plannerIdFilter === '' || item.plannerId === plannerIdFilter)
+                        (plannerIdFilter === '' || item.plannerId === plannerIdFilter) &&
+                        (itemNoPrefixFilter === 'ALL' ||
+                          (itemNoPrefixFilter === 'その他'
+                            ? (!item.itemNo.startsWith('NDC') && !item.itemNo.startsWith('NDF'))
+                            : item.itemNo.startsWith(itemNoPrefixFilter)))
                     )
                     .map((item) => (
                       <tr
                         key={item.id}
                         className={`hover:bg-gray-50 ${selectedItemIds.includes(item.id!)
-                            ? 'bg-blue-50'
-                            : ''
+                          ? 'bg-blue-50'
+                          : ''
                           }`}
                       >
                         <td className="px-4 py-3">
@@ -603,13 +674,16 @@ const ExhibitionDetail: React.FC = () => {
                           {item.name}
                         </td>
                         <td className="px-4 py-3 text-sm text-gray-900">
-                          {item.composition || '-'}
+                          {item.dollarPrice ? `$${item.dollarPrice}` : '-'}
                         </td>
                         <td className="px-4 py-3 text-sm text-gray-900">
                           {item.fabricNo || '-'}
                         </td>
                         <td className="px-4 py-3 text-sm text-gray-900">
-                          {item.dollarPrice ? `$${item.dollarPrice}` : '-'}
+                          {item.fabricCost ? `${item.fabricCost} ${item.fabricCostCurrency || 'USD'}` : '-'}
+                        </td>
+                        <td className="px-4 py-3 text-sm text-gray-900">
+                          {item.requiredFabricLength ? `${item.requiredFabricLength} m/pc` : '-'}
                         </td>
                         <td className="px-4 py-3 text-sm text-gray-900">
                           {item.factory || '-'}
@@ -654,8 +728,8 @@ const ExhibitionDetail: React.FC = () => {
             </button>
           </div>
         </div>
-      </main>
-    </div>
+      </main >
+    </div >
   )
 }
 

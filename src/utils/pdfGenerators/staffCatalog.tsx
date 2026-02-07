@@ -17,9 +17,9 @@ const styles = StyleSheet.create({
   },
   header: {
     marginBottom: 20,
-    borderBottom: '3pt solid #1a56db',
+    borderBottom: '3pt solid #0ea5e9',
     paddingBottom: 12,
-    backgroundColor: '#f0f7ff',
+    backgroundColor: '#f0f9ff',
     padding: 12,
     borderRadius: 4,
   },
@@ -38,7 +38,7 @@ const styles = StyleSheet.create({
   },
   companyName: {
     fontSize: 7,
-    color: '#666',
+    color: '#64748b',
     lineHeight: 1.4,
   },
   title: {
@@ -46,11 +46,11 @@ const styles = StyleSheet.create({
     fontWeight: 700,
     marginBottom: 8,
     lineHeight: 1.3,
-    color: '#1a56db',
+    color: '#0ea5e9',
   },
   subtitle: {
     fontSize: 9,
-    color: '#666',
+    color: '#64748b',
     lineHeight: 1.5,
   },
   grid: {
@@ -63,8 +63,8 @@ const styles = StyleSheet.create({
     marginBottom: 15,
     marginRight: '2%',
     padding: 14,
-    border: '2pt solid #1a56db',
-    backgroundColor: '#f0f7ff',
+    border: '2pt solid #0ea5e9',
+    backgroundColor: '#f0f9ff',
     borderRadius: 6,
   },
   itemImage: {
@@ -72,7 +72,7 @@ const styles = StyleSheet.create({
     height: 150,
     objectFit: 'contain',
     marginBottom: 8,
-    backgroundColor: '#f5f5f5',
+    backgroundColor: '#ffffff',
   },
   itemInfo: {
     fontSize: 8,
@@ -81,7 +81,7 @@ const styles = StyleSheet.create({
   itemNo: {
     fontSize: 22,
     fontWeight: 700,
-    color: '#1a56db',
+    color: '#334155',
     marginBottom: 8,
     lineHeight: 1.3,
   },
@@ -89,7 +89,7 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: 700,
     marginBottom: 10,
-    color: '#1a56db',
+    color: '#0284c7',
     lineHeight: 1.4,
   },
   itemRow: {
@@ -99,13 +99,13 @@ const styles = StyleSheet.create({
   label: {
     width: '35%',
     fontWeight: 700,
-    color: '#555',
+    color: '#64748b',
     lineHeight: 1.5,
     fontSize: 9,
   },
   value: {
     width: '65%',
-    color: '#000',
+    color: '#334155',
     lineHeight: 1.5,
     fontSize: 9,
   },
@@ -125,13 +125,13 @@ const styles = StyleSheet.create({
     right: 30,
     textAlign: 'center',
     fontSize: 8,
-    color: '#999',
-    borderTop: '1pt solid #ddd',
+    color: '#94a3b8',
+    borderTop: '1pt solid #e2e8f0',
     paddingTop: 10,
   },
   // 表紙スタイル
   coverPage: {
-    backgroundColor: '#1a56db',
+    backgroundColor: '#0ea5e9',
     padding: 0,
     display: 'flex',
     flexDirection: 'column',
@@ -175,13 +175,13 @@ const styles = StyleSheet.create({
     lineHeight: 1.6,
   },
   coverBadge: {
-    backgroundColor: '#fbbf24',
+    backgroundColor: '#ffffff',
     padding: '12pt 28pt',
     borderRadius: 25,
     marginTop: 30,
     fontSize: 14,
-    color: '#1a56db',
-    border: '2pt solid #ffffff',
+    color: '#0ea5e9',
+    border: 'none',
     lineHeight: 1.5,
     fontWeight: 700,
   },
@@ -192,7 +192,7 @@ const styles = StyleSheet.create({
     right: 30,
     textAlign: 'center',
     fontSize: 9,
-    color: 'rgba(255,255,255,0.7)',
+    color: 'rgba(255,255,255,0.8)',
     lineHeight: 1.5,
   },
   coverQRCode: {
@@ -208,7 +208,7 @@ const styles = StyleSheet.create({
     marginTop: 10,
     color: '#ffffff',
   },
-})
+});
 
 interface StaffCatalogPDFProps {
   exhibition: Exhibition
@@ -246,8 +246,8 @@ export const StaffCatalogPDF: React.FC<StaffCatalogPDFProps> = ({ exhibition, it
       {/* 表紙ページ */}
       <Page size="A4" orientation="landscape" style={styles.coverPage}>
         <View style={styles.coverContent}>
-          <Image src="/goko-logo.svg" style={styles.coverLogo} />
-          <Text style={styles.coverCompany}>株式会社 互興 | GOKO Co.,Ltd.</Text>
+          <Image src="/need-logo.svg" style={styles.coverLogo} />
+          <Text style={styles.coverCompany}>株式会社ニード | NEED Co., Ltd.</Text>
 
           <Text style={styles.coverTitle}>{exhibition.exhibitionName}</Text>
           <Text style={styles.coverSubtitle}>管理者用カタログ</Text>
@@ -268,7 +268,7 @@ export const StaffCatalogPDF: React.FC<StaffCatalogPDFProps> = ({ exhibition, it
           )}
         </View>
         <Text style={styles.coverFooter}>
-          株式会社 互興 アパレル商品管理システム
+          株式会社ニード ニード商品管理システム
         </Text>
       </Page>
 
@@ -278,10 +278,10 @@ export const StaffCatalogPDF: React.FC<StaffCatalogPDFProps> = ({ exhibition, it
           {/* ヘッダー（各ページに表示） */}
           <View style={styles.header}>
             <View style={styles.headerTop}>
-              <Image src="/goko-logo.svg" style={styles.logo} />
+              <Image src="/need-logo.svg" style={styles.logo} />
               <View style={styles.companyInfo}>
-                <Text style={styles.companyName}>株式会社 互興</Text>
-                <Text style={styles.companyName}>GOKO Co.,Ltd.</Text>
+                <Text style={styles.companyName}>株式会社ニード</Text>
+                <Text style={styles.companyName}>NEED Co., Ltd.</Text>
               </View>
             </View>
             <Text style={styles.title}>{exhibition.exhibitionName} - 管理者用カタログ</Text>

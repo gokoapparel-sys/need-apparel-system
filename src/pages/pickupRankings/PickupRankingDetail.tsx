@@ -5,8 +5,7 @@ import { exhibitionsService } from '../../services/exhibitionsService'
 import { pickupsService } from '../../services/pickupsService'
 import { itemsService } from '../../services/itemsService'
 import { Exhibition, Item } from '../../types'
-import { pdf } from '@react-pdf/renderer'
-import { RankingPDF } from '../../utils/pdfGenerators/rankingPDF'
+
 
 interface RankingItem {
   item: Item
@@ -89,34 +88,7 @@ const PickupRankingDetail: React.FC = () => {
     }
   }
 
-  const handleExportPDF = async () => {
-    if (!exhibition || rankings.length === 0) {
-      alert('ランキングデータがありません')
-      return
-    }
 
-    try {
-      // PDF生成
-      const blob = await pdf(
-        <RankingPDF
-          exhibition={exhibition}
-          rankings={rankings}
-        />
-      ).toBlob()
-
-      // ダウンロード（タイムスタンプを追加してキャッシュ回避）
-      const timestamp = new Date().getTime()
-      const url = URL.createObjectURL(blob)
-      const link = document.createElement('a')
-      link.href = url
-      link.download = `${exhibition.exhibitionCode}_ピックアップランキング_${timestamp}.pdf`
-      link.click()
-      URL.revokeObjectURL(url)
-    } catch (error) {
-      console.error('PDF出力エラー:', error)
-      alert('PDF出力に失敗しました')
-    }
-  }
 
   const formatDate = (timestamp: any): string => {
     if (!timestamp) return ''
@@ -195,12 +167,7 @@ const PickupRankingDetail: React.FC = () => {
               </p>
               <p className="text-sm text-gray-500 mt-2">展示会コード: {exhibition.exhibitionCode}</p>
             </div>
-            <button
-              onClick={handleExportPDF}
-              className="inline-flex items-center px-4 py-2 bg-red-600 text-white font-bold rounded-lg hover:bg-red-700 transition-all shadow-md text-xs sm:text-sm whitespace-nowrap"
-            >
-              📄 PDF出力
-            </button>
+
           </div>
         </div>
 
@@ -215,60 +182,60 @@ const PickupRankingDetail: React.FC = () => {
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               {rankings.map((ranking, index) => (
+                <div
+                  key={ranking.item.id}
+                  className="relative bg-gradient-to-br from-gray-50 to-blue-50 border-2 border-gray-300 rounded-xl p-5 hover:shadow-xl hover:border-gray-400 transition-all"
+                >
+                  {/* ランキングバッジ */}
                   <div
-                    key={ranking.item.id}
-                    className="relative bg-gradient-to-br from-gray-50 to-blue-50 border-2 border-gray-300 rounded-xl p-5 hover:shadow-xl hover:border-gray-400 transition-all"
+                    className="absolute top-3 left-3 bg-gradient-to-br from-blue-500 via-blue-600 to-blue-800 text-white px-6 py-3 font-black text-2xl z-10 shadow-2xl border-4 border-white rounded-lg transform hover:scale-110 transition-transform"
+                    style={{ boxShadow: '0 10px 40px rgba(37, 99, 235, 0.6), 0 0 20px rgba(59, 130, 246, 0.4)' }}
                   >
-                    {/* ランキングバッジ */}
-                    <div
-                      className="absolute top-3 left-3 bg-gradient-to-br from-blue-500 via-blue-600 to-blue-800 text-white px-6 py-3 font-black text-2xl z-10 shadow-2xl border-4 border-white rounded-lg transform hover:scale-110 transition-transform"
-                      style={{ boxShadow: '0 10px 40px rgba(37, 99, 235, 0.6), 0 0 20px rgba(59, 130, 246, 0.4)' }}
-                    >
-                      No.{index + 1}
-                    </div>
+                    No.{index + 1}
+                  </div>
 
-                    {/* アイテム画像 */}
-                    <div className="mt-12 mb-4">
-                      {ranking.item.images && ranking.item.images.length > 0 ? (
-                        <img
-                          src={ranking.item.images[0].url}
-                          alt={ranking.item.name}
-                          onClick={(e) => {
-                            e.stopPropagation()
-                            setEnlargedImage(ranking.item.images![0].url)
-                          }}
-                          className="w-full h-56 object-contain rounded-lg cursor-pointer hover:opacity-80 transition-opacity bg-white p-2"
-                        />
-                      ) : (
-                        <div className="w-full h-56 bg-gray-200 rounded-lg flex items-center justify-center text-gray-400">
-                          画像なし
-                        </div>
-                      )}
-                    </div>
-
-                    {/* アイテム情報 */}
-                    <div className="space-y-3">
-                      <p className="text-sm font-semibold text-gray-600">{ranking.item.itemNo}</p>
-                      <p className="text-base font-bold text-gray-900">{ranking.item.name}</p>
-
-                      {/* ピックアップ回数表示 */}
-                      <div className="pt-2 border-t-2 border-gray-300">
-                        <div className="flex items-center justify-between mb-2">
-                          <span className="text-sm font-semibold text-gray-600">ピックアップ回数</span>
-                          <span className="text-2xl font-black text-slate-800">{ranking.pickupCount}回</span>
-                        </div>
-
-                        {/* 詳細ボタン */}
-                        <button
-                          onClick={() => setSelectedItem(ranking)}
-                          className="w-full bg-gradient-to-r from-blue-900 to-blue-950 hover:from-blue-950 hover:to-slate-950 text-white font-black py-4 px-6 rounded-xl transition-all shadow-xl hover:shadow-2xl transform hover:scale-[1.02] text-base tracking-wide"
-                          style={{ boxShadow: '0 8px 24px rgba(30, 58, 138, 0.5)' }}
-                        >
-                          ピックアップデータを見る
-                        </button>
+                  {/* アイテム画像 */}
+                  <div className="mt-12 mb-4">
+                    {ranking.item.images && ranking.item.images.length > 0 ? (
+                      <img
+                        src={ranking.item.images[0].url}
+                        alt={ranking.item.name}
+                        onClick={(e) => {
+                          e.stopPropagation()
+                          setEnlargedImage(ranking.item.images![0].url)
+                        }}
+                        className="w-full h-56 object-contain rounded-lg cursor-pointer hover:opacity-80 transition-opacity bg-white p-2"
+                      />
+                    ) : (
+                      <div className="w-full h-56 bg-gray-200 rounded-lg flex items-center justify-center text-gray-400">
+                        画像なし
                       </div>
+                    )}
+                  </div>
+
+                  {/* アイテム情報 */}
+                  <div className="space-y-3">
+                    <p className="text-sm font-semibold text-gray-600">{ranking.item.itemNo}</p>
+                    <p className="text-base font-bold text-gray-900">{ranking.item.name}</p>
+
+                    {/* ピックアップ回数表示 */}
+                    <div className="pt-2 border-t-2 border-gray-300">
+                      <div className="flex items-center justify-between mb-2">
+                        <span className="text-sm font-semibold text-gray-600">ピックアップ回数</span>
+                        <span className="text-2xl font-black text-slate-800">{ranking.pickupCount}回</span>
+                      </div>
+
+                      {/* 詳細ボタン */}
+                      <button
+                        onClick={() => setSelectedItem(ranking)}
+                        className="w-full bg-gradient-to-r from-blue-900 to-blue-950 hover:from-blue-950 hover:to-slate-950 text-white font-black py-4 px-6 rounded-xl transition-all shadow-xl hover:shadow-2xl transform hover:scale-[1.02] text-base tracking-wide"
+                        style={{ boxShadow: '0 8px 24px rgba(30, 58, 138, 0.5)' }}
+                      >
+                        ピックアップデータを見る
+                      </button>
                     </div>
                   </div>
+                </div>
               ))}
             </div>
           )}

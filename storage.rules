@@ -1,27 +1,59 @@
 rules_version = '2';
 service firebase.storage {
   match /b/{bucket}/o {
-    // 認証済みユーザーのみアクセス可能
-    match /{allPaths=**} {
-      allow read: if request.auth != null;
-      allow write: if request.auth != null
-                   && request.resource.size < 5 * 1024 * 1024; // 5MB制限
+    // 認証済みかどうかをチェック
+    function isAuthenticated() {
+      return request.auth != null;
     }
 
-    // アイテム画像
+    // デフォルト: 認証済みユーザーは読み込み可、削除可、書き込みはサイズ制限あり
+    match /{allPaths=**} {
+      allow read: if isAuthenticated();
+      // 削除は認証済みなら許可（request.resourceが存在しないためサイズチェック不可）
+      allow delete: if isAuthenticated();
+      // 作成・更新はサイズ制限あり
+      allow create, update: if isAuthenticated()
+                   && request.resource.size < 20 * 1024 * 1024; // 20MB制限（仕様書などに対応）
+    }
+
+    // アイテム画像・生地画像・仕様書など (サブフォルダも含む)
+    match /items/{itemId}/{allPaths=**} {
+      // アイテム関連は読み込み許可（必要に応じて制限）
+      allow read: if true; 
+      // 削除は認証済みなら許可
+      allow delete: if isAuthenticated();
+      // 作成・更新はサイズ制限と画像形式チェック（仕様書はPDFなども許容するためここでは緩めるか、別途定義）
+      // ここでは仕様書も items/{id}/specs/ に入るため、画像制限を強制すると仕様書がアップできない可能性がある
+      // フォルダごとに分ける
+    }
+    
+    // アイテム直下の画像ファイル (items/ID/filename)
     match /items/{itemId}/{fileName} {
-      allow read: if true;
-      allow write: if request.auth != null
-                   && request.resource.size < 5 * 1024 * 1024
+      allow write: if isAuthenticated()
+                   && request.resource.size < 10 * 1024 * 1024
                    && request.resource.contentType.matches('image/.*');
+    }
+
+    // 生地画像 (items/ID/fabric/filename)
+    match /items/{itemId}/fabric/{fileName} {
+      allow write: if isAuthenticated()
+                   && request.resource.size < 10 * 1024 * 1024
+                   && request.resource.contentType.matches('image/.*');
+    }
+
+    // 仕様書 (items/ID/specs/filename)
+    match /items/{itemId}/specs/{fileName} {
+      allow write: if isAuthenticated()
+                   && request.resource.size < 25 * 1024 * 1024;
+                   // 形式は問わない
     }
 
     // 型紙ファイル
     match /patterns/{patternId}/{fileName} {
-      allow read: if request.auth != null;
-      allow write: if request.auth != null
-                   && request.resource.size < 10 * 1024 * 1024
-                   && request.resource.contentType.matches('application/pdf');
+      allow read: if isAuthenticated();
+      allow delete: if isAuthenticated();
+      allow write: if isAuthenticated()
+                   && request.resource.size < 25 * 1024 * 1024;
     }
   }
 }
