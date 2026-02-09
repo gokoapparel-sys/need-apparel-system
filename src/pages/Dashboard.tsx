@@ -134,6 +134,21 @@ const Dashboard: React.FC = () => {
           </div>
         </div>
       </main>
+
+      <footer className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 text-center">
+        <p className="text-xs text-gray-400">
+          Need Apparel System v1.3.1
+        </p>
+        <p className="text-xs text-gray-400">
+          &copy; 2026 kozakura All Rights Reserved.
+        </p>
+        <button
+          onClick={() => navigate('/about')}
+          className="text-xs text-gray-400 hover:text-gray-600 underline mt-1"
+        >
+          このシステムについて
+        </button>
+      </footer>
     </div>
   )
 }

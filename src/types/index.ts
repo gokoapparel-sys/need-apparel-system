@@ -167,12 +167,27 @@ export interface Loan {
   itemNo: string // 品番
   itemName?: string // アイテム名（表示用）
   staff: string // 担当者
+  borrowerName?: string // 貸出先名
+  borrowerCompany?: string // 貸出先会社名
+  borrowerEmail?: string // 貸出先メール
   borrowDate: Timestamp
   returnDate?: Timestamp
   returnNotes?: string // 返却時のメモ
   purpose: string
   status: 'borrowed' | 'returned'
   notes?: string // 貸出時の備考
+  createdAt?: Timestamp
+  updatedAt?: Timestamp
+  createdBy?: string
+}
+
+// 貸出カード共有型
+export interface LoanShare {
+  id?: string
+  borrowerName: string // 貸出先名
+  borrowerCompany?: string // 貸出先会社名
+  borrowerEmail?: string // 貸出先メール
+  loanIds: string[] // 対象の貸出ID配列
   createdAt?: Timestamp
   updatedAt?: Timestamp
   createdBy?: string

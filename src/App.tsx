@@ -33,6 +33,8 @@ import ScanItem from './pages/pickups/ScanItem'
 import LoansList from './pages/loans/LoansList'
 import LoanForm from './pages/loans/LoanForm'
 import LoanDetail from './pages/loans/LoanDetail'
+import LoanSharePublicView from './pages/loans/LoanSharePublicView'
+import About from './pages/About'
 import PickupRankingList from './pages/pickupRankings/PickupRankingList'
 import PickupRankingDetail from './pages/pickupRankings/PickupRankingDetail'
 
@@ -47,6 +49,8 @@ const App: React.FC = () => {
           <Route path="/pickup-session-start" element={<PickupSessionStart />} />
           <Route path="/pickup-scan-session" element={<PickupScanSession />} />
           <Route path="/scan-item/:itemId" element={<ScanItem />} />
+          {/* Public loan share view */}
+          <Route path="/loan-share/:id" element={<LoanSharePublicView />} />
           {/* Public customer catalog */}
           <Route path="/exhibitions/:id/customer-catalog" element={<CustomerWebCatalog />} />
           {/* Public exhibition landing page */}
@@ -286,6 +290,14 @@ const App: React.FC = () => {
             element={
               <PrivateRoute>
                 <PickupRankingDetail />
+              </PrivateRoute>
+            }
+          />
+          <Route
+            path="/about"
+            element={
+              <PrivateRoute>
+                <About />
               </PrivateRoute>
             }
           />

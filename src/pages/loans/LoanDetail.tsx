@@ -160,6 +160,13 @@ const LoanDetail: React.FC = () => {
                 <p className="text-lg font-semibold text-gray-900">{loan.staff}</p>
               </div>
 
+              {loan.borrowerName && (
+                <div>
+                  <p className="text-sm text-gray-600">貸出先</p>
+                  <p className="text-lg font-semibold text-gray-900">{loan.borrowerName}</p>
+                </div>
+              )}
+
               <div>
                 <p className="text-sm text-gray-600">ステータス</p>
                 <p className="text-lg font-semibold text-gray-900">

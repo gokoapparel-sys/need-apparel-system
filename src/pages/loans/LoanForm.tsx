@@ -18,6 +18,7 @@ const LoanForm: React.FC = () => {
     itemNo: '',
     itemName: '',
     staff: '',
+    borrowerName: '',
     borrowDate: '',
     purpose: '',
     notes: '',
@@ -59,6 +60,7 @@ const LoanForm: React.FC = () => {
             itemNo: loan.itemNo,
             itemName: loan.itemName || '',
             staff: loan.staff,
+            borrowerName: loan.borrowerName || '',
             borrowDate: loan.borrowDate
               ? new Date(loan.borrowDate.toDate()).toISOString().split('T')[0]
               : '',
@@ -199,35 +201,36 @@ const LoanForm: React.FC = () => {
       setSubmitting(true)
 
       // 共通のデータ
-      const baseData = {
+      const baseData: Record<string, any> = {
         staff: formData.staff,
         borrowDate: Timestamp.fromDate(new Date(formData.borrowDate)),
         purpose: formData.purpose,
         notes: formData.notes,
         status: formData.status,
-        createdBy: currentUser?.email || undefined,
       }
+      if (formData.borrowerName) baseData.borrowerName = formData.borrowerName
+      if (currentUser?.email) baseData.createdBy = currentUser.email
 
       if (isEditMode) {
         // 更新：単一レコード
         const targetItem = selectedItems[0]
-        const loanData: Omit<Loan, 'id' | 'createdAt' | 'updatedAt'> = {
+        const loanData = {
           ...baseData,
           itemId: targetItem.id!,
           itemNo: targetItem.itemNo,
           itemName: targetItem.name,
-        }
+        } as any
         await loansService.updateLoan(id, loanData)
         alert('貸出記録を更新しました')
       } else {
         // 新規：複数レコード作成
         const promises = selectedItems.map(item => {
-          const loanData: Omit<Loan, 'id' | 'createdAt' | 'updatedAt'> = {
+          const loanData = {
             ...baseData,
             itemId: item.id!,
             itemNo: item.itemNo,
             itemName: item.name,
-          }
+          } as any
           return loansService.createLoan(loanData)
         })
 
@@ -319,6 +322,22 @@ const LoanForm: React.FC = () => {
                     placeholder="例: 山田太郎"
                     className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500"
                     required
+                    disabled={submitting}
+                  />
+                </div>
+
+                <div>
+                  <label htmlFor="borrowerName" className="block text-sm font-medium text-gray-700 mb-1">
+                    貸出先名
+                  </label>
+                  <input
+                    id="borrowerName"
+                    name="borrowerName"
+                    type="text"
+                    value={formData.borrowerName}
+                    onChange={handleChange}
+                    placeholder="例: 田中花子"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500"
                     disabled={submitting}
                   />
                 </div>

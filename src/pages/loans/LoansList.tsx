@@ -2,8 +2,9 @@ import React, { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../../contexts/AuthContext'
 import { loansService } from '../../services/loansService'
+import { loanSharesService } from '../../services/loanSharesService'
 import { itemsService } from '../../services/itemsService'
-import { Loan } from '../../types'
+import { Loan, LoanShare } from '../../types'
 
 const LoansList: React.FC = () => {
   const { currentUser } = useAuth()
@@ -18,10 +19,27 @@ const LoansList: React.FC = () => {
   const [selectedLoanId, setSelectedLoanId] = useState<string | null>(null)
   const [returnNotes, setReturnNotes] = useState('')
   const [itemImages, setItemImages] = useState<Record<string, string>>({})
+  const [selectedBorrower, setSelectedBorrower] = useState('')
+  const [creatingShare, setCreatingShare] = useState(false)
+  const [shareUrl, setShareUrl] = useState('')
+  const [loanShares, setLoanShares] = useState<LoanShare[]>([])
 
   useEffect(() => {
     loadLoans()
   }, [statusFilter, sortBy, sortOrder])
+
+  useEffect(() => {
+    loadLoanShares()
+  }, [])
+
+  const loadLoanShares = async () => {
+    try {
+      const shares = await loanSharesService.listLoanShares()
+      setLoanShares(shares)
+    } catch (error) {
+      console.error('貸出カード読み込みエラー:', error)
+    }
+  }
 
   const loadLoans = async () => {
     try {
@@ -217,6 +235,9 @@ const LoansList: React.FC = () => {
                     担当者
                   </th>
                   <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                    貸出先
+                  </th>
+                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">
                     貸出日
                   </th>
                   <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">
@@ -236,7 +257,7 @@ const LoansList: React.FC = () => {
               <tbody className="bg-white divide-y divide-gray-200">
                 {loans.length === 0 ? (
                   <tr>
-                    <td colSpan={9} className="px-4 py-8 text-center text-gray-500">
+                    <td colSpan={10} className="px-4 py-8 text-center text-gray-500">
                       貸出記録がありません
                     </td>
                   </tr>
@@ -264,6 +285,9 @@ const LoansList: React.FC = () => {
                       <td className="px-4 py-3 text-sm font-medium text-gray-900">{loan.itemNo}</td>
                       <td className="px-4 py-3 text-sm text-gray-900">{loan.itemName || '-'}</td>
                       <td className="px-4 py-3 text-sm text-gray-900">{loan.staff}</td>
+                      <td className="px-4 py-3 text-sm text-gray-900">
+                        {loan.borrowerName || '-'}
+                      </td>
                       <td className="px-4 py-3 text-sm text-gray-900">
                         {formatDate(loan.borrowDate)}
                       </td>
@@ -319,6 +343,186 @@ const LoansList: React.FC = () => {
               </tbody>
             </table>
           </div>
+        </div>
+
+        {/* 貸出カード作成セクション */}
+        <div className="card mt-6">
+          <h2 className="text-xl font-bold text-gray-900 mb-4">貸出カード作成</h2>
+          <p className="text-sm text-gray-600 mb-4">
+            貸出先を選択して「作成」をクリックすると、貸出中アイテム一覧の公開ページが作成されます。発行されたURLをメール等で共有できます。
+          </p>
+
+          {/* Step 1: 貸出先を選択 */}
+          <div className="bg-gray-50 rounded-lg p-4 mb-4">
+            <div className="flex items-center gap-2 mb-3">
+              <span className="inline-flex items-center justify-center w-6 h-6 rounded-full bg-emerald-600 text-white text-xs font-bold">1</span>
+              <span className="text-sm font-bold text-gray-800">貸出先を選択</span>
+            </div>
+            <select
+              value={selectedBorrower}
+              onChange={(e) => {
+                setSelectedBorrower(e.target.value)
+                setShareUrl('')
+              }}
+              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500 bg-white"
+            >
+              <option value="">-- 貸出先を選択してください --</option>
+              {Array.from(
+                new Map(
+                  loans
+                    .filter(l => l.status === 'borrowed' && l.borrowerName)
+                    .map(l => [l.borrowerName!, l])
+                ).values()
+              ).map(loan => {
+                const count = loans.filter(l => l.status === 'borrowed' && l.borrowerName === loan.borrowerName).length
+                return (
+                  <option key={loan.borrowerName} value={loan.borrowerName!}>
+                    {loan.borrowerName}（{count}件貸出中）
+                  </option>
+                )
+              })}
+            </select>
+            {loans.filter(l => l.status === 'borrowed' && l.borrowerName).length === 0 && (
+              <p className="text-xs text-orange-600 mt-2">※ 貸出先名が設定された貸出中の記録がありません。貸出登録時に「貸出先名」を入力してください。</p>
+            )}
+          </div>
+
+          {/* Step 2: 作成ボタン */}
+          <div className="bg-gray-50 rounded-lg p-4 mb-4">
+            <div className="flex items-center gap-2 mb-3">
+              <span className="inline-flex items-center justify-center w-6 h-6 rounded-full bg-emerald-600 text-white text-xs font-bold">2</span>
+              <span className="text-sm font-bold text-gray-800">カードを作成</span>
+            </div>
+            <button
+              onClick={async () => {
+                if (!selectedBorrower) {
+                  alert('貸出先を選択してください')
+                  return
+                }
+
+                const borrowedLoans = loans.filter(
+                  l => l.status === 'borrowed' && l.borrowerName === selectedBorrower
+                )
+                if (borrowedLoans.length === 0) {
+                  alert('選択した貸出先に貸出中のアイテムがありません')
+                  return
+                }
+
+                try {
+                  setCreatingShare(true)
+                  const shareData: Record<string, any> = {
+                    borrowerName: selectedBorrower,
+                    loanIds: borrowedLoans.map(l => l.id!),
+                  }
+                  if (currentUser?.email) shareData.createdBy = currentUser.email
+                  const shareId = await loanSharesService.createLoanShare(shareData as any)
+                  const url = loanSharesService.generateShareUrl(shareId)
+                  setShareUrl(url)
+                  loadLoanShares()
+                } catch (error) {
+                  console.error('貸出カード作成エラー:', error)
+                  alert('貸出カードの作成に失敗しました')
+                } finally {
+                  setCreatingShare(false)
+                }
+              }}
+              disabled={creatingShare || !selectedBorrower}
+              className={`px-6 py-3 rounded-lg font-bold text-white transition-all shadow-md ${
+                !selectedBorrower
+                  ? 'bg-gray-300 cursor-not-allowed'
+                  : 'bg-emerald-600 hover:bg-emerald-700 hover:shadow-lg'
+              }`}
+            >
+              {creatingShare ? '作成中...' : `「${selectedBorrower || '...'}」の貸出カードを作成`}
+            </button>
+          </div>
+
+          {/* Step 3: 結果表示 */}
+          {shareUrl && (
+            <div className="bg-green-50 border-2 border-green-300 rounded-lg p-5">
+              <div className="flex items-center gap-2 mb-3">
+                <span className="inline-flex items-center justify-center w-6 h-6 rounded-full bg-green-600 text-white text-xs font-bold">3</span>
+                <span className="text-sm font-bold text-green-800">作成完了 — 以下のURLを貸出先に共有してください</span>
+              </div>
+              <div className="bg-white rounded-md border border-green-200 p-3 mb-3">
+                <p className="text-xs text-gray-500 mb-1">公開URL（このURLを開くと貸出アイテム一覧が表示されます）</p>
+                <p className="text-sm font-mono text-gray-900 break-all select-all">{shareUrl}</p>
+              </div>
+              <div className="flex gap-2">
+                <button
+                  onClick={() => {
+                    navigator.clipboard.writeText(shareUrl)
+                    alert('URLをクリップボードにコピーしました')
+                  }}
+                  className="px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 text-sm font-bold shadow"
+                >
+                  URLをコピー
+                </button>
+                <button
+                  onClick={() => window.open(shareUrl, '_blank')}
+                  className="px-4 py-2 bg-white text-green-700 border border-green-300 rounded-md hover:bg-green-50 text-sm font-bold"
+                >
+                  プレビューを開く
+                </button>
+              </div>
+            </div>
+          )}
+
+          {/* 作成済みカード一覧 */}
+          {loanShares.length > 0 && (
+            <div className="mt-8 pt-6 border-t">
+              <h3 className="text-base font-bold text-gray-800 mb-3">作成済みカード一覧</h3>
+              <div className="space-y-3">
+                {loanShares.map(share => {
+                  const url = loanSharesService.generateShareUrl(share.id!)
+                  return (
+                    <div key={share.id} className="flex items-center justify-between bg-white border border-gray-200 rounded-lg p-4 hover:shadow-sm transition-shadow">
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center gap-3">
+                          <span className="font-bold text-gray-900">{share.borrowerName}</span>
+                          <span className="text-xs bg-gray-100 text-gray-600 px-2 py-0.5 rounded">{share.loanIds.length}件</span>
+                          <span className="text-xs text-gray-400">{formatDate(share.createdAt)}</span>
+                        </div>
+                        <p className="text-xs text-gray-400 font-mono mt-1 truncate">{url}</p>
+                      </div>
+                      <div className="flex items-center gap-2 ml-4 flex-shrink-0">
+                        <button
+                          onClick={() => {
+                            navigator.clipboard.writeText(url)
+                            alert('URLをコピーしました')
+                          }}
+                          className="px-3 py-1.5 text-xs font-bold text-emerald-700 bg-emerald-50 border border-emerald-200 rounded hover:bg-emerald-100"
+                        >
+                          コピー
+                        </button>
+                        <button
+                          onClick={() => window.open(url, '_blank')}
+                          className="px-3 py-1.5 text-xs font-bold text-blue-700 bg-blue-50 border border-blue-200 rounded hover:bg-blue-100"
+                        >
+                          開く
+                        </button>
+                        <button
+                          onClick={async () => {
+                            if (!window.confirm('この貸出カードを削除しますか？')) return
+                            try {
+                              await loanSharesService.deleteLoanShare(share.id!)
+                              loadLoanShares()
+                            } catch (error) {
+                              console.error('削除エラー:', error)
+                              alert('削除に失敗しました')
+                            }
+                          }}
+                          className="px-3 py-1.5 text-xs font-bold text-red-700 bg-red-50 border border-red-200 rounded hover:bg-red-100"
+                        >
+                          削除
+                        </button>
+                      </div>
+                    </div>
+                  )
+                })}
+              </div>
+            </div>
+          )}
         </div>
 
         {/* 返却ダイアログ */}
