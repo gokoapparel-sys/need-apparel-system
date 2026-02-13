@@ -49,6 +49,13 @@ export interface Item {
     path: string
     name?: string // ファイル名（表示用）
   }[]
+  sampleType?: 'exhibition' | 'planning' | 'purchase' // サンプル種別
+  purchaseInfo?: {
+    brand: string
+    points: string
+    staff: string
+    purchaseDate: Timestamp
+  }
   createdAt?: Timestamp
   updatedAt?: Timestamp
   createdBy?: string

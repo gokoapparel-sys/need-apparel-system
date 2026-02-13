@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react'
+import { Timestamp } from 'firebase/firestore'
 import { useNavigate, useParams } from 'react-router-dom'
 import { useAuth } from '../../contexts/AuthContext'
 import { itemsService } from '../../services/itemsService'
@@ -35,6 +36,13 @@ const ItemForm: React.FC = () => {
     createdBy: '',
     plannerId: '', // 企画担当者ID
     appealPoint: '',
+    sampleType: '' as 'exhibition' | 'planning' | 'purchase' | '',
+    purchaseInfo: {
+      brand: '',
+      points: '',
+      staff: '',
+      purchaseDate: '',
+    },
   })
 
   const [existingImages, setExistingImages] = useState<{ url: string; path: string }[]>([])
@@ -108,6 +116,15 @@ const ItemForm: React.FC = () => {
           createdBy: item.createdBy || '',
           plannerId: item.plannerId || '',
           appealPoint: item.appealPoint || '',
+          sampleType: item.sampleType || '',
+          purchaseInfo: {
+            brand: item.purchaseInfo?.brand || '',
+            points: item.purchaseInfo?.points || '',
+            staff: item.purchaseInfo?.staff || '',
+            purchaseDate: item.purchaseInfo?.purchaseDate?.toDate
+              ? item.purchaseInfo.purchaseDate.toDate().toISOString().split('T')[0]
+              : '',
+          },
         })
         setExistingImages(item.images || [])
         setExistingFabricImages(item.fabricImages || [])
@@ -128,6 +145,19 @@ const ItemForm: React.FC = () => {
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target
     const numericFields = ['dollarPrice', 'referencePrice', 'fabricCost', 'requiredFabricLength']
+
+    // 購入サンプル情報の更新
+    if (name.startsWith('purchaseInfo.')) {
+      const field = name.split('.')[1]
+      setFormData((prev) => ({
+        ...prev,
+        purchaseInfo: {
+          ...prev.purchaseInfo,
+          [field]: value,
+        },
+      }))
+      return
+    }
 
     // 型紙選択の場合、patternIdとpatternNoを自動設定
     if (name === 'patternId') {
@@ -393,6 +423,9 @@ const ItemForm: React.FC = () => {
     if (!formData.plannerId.trim()) {
       newErrors.plannerId = '企画担当者IDは必須です'
     }
+    if (!formData.sampleType) {
+      newErrors.sampleType = 'サンプル種別は必須です'
+    }
 
     setErrors(newErrors)
     return Object.keys(newErrors).length === 0
@@ -411,9 +444,21 @@ const ItemForm: React.FC = () => {
       setSubmitting(true)
 
       // skuフィールドに後方互換性のためitemNoを設定
-      const itemData = {
+      const itemData: any = {
         ...formData,
         sku: formData.itemNo, // 後方互換性
+      }
+
+      // 購入サンプル情報の日付変換
+      if (formData.sampleType === 'purchase') {
+        if (formData.purchaseInfo.purchaseDate) {
+          itemData.purchaseInfo = {
+            ...formData.purchaseInfo,
+            purchaseDate: Timestamp.fromDate(new Date(formData.purchaseInfo.purchaseDate)),
+          }
+        }
+      } else {
+        delete itemData.purchaseInfo
       }
 
       if (isEditMode && id) {
@@ -818,6 +863,121 @@ const ItemForm: React.FC = () => {
                   className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500"
                   disabled={submitting}
                 />
+              </div>
+
+              {/* サンプル種別 */}
+              <div className="md:col-span-2 border-t pt-4 mt-4">
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  サンプル種別
+                </label>
+                <div className="flex gap-4 mb-4">
+                  <label className="inline-flex items-center">
+                    <input
+                      type="radio"
+                      name="sampleType"
+                      value="exhibition"
+                      checked={formData.sampleType === 'exhibition'}
+                      onChange={handleChange}
+                      className="form-radio text-emerald-600"
+                      disabled={submitting}
+                    />
+                    <span className="ml-2">展示会サンプル</span>
+                  </label>
+                  <label className="inline-flex items-center">
+                    <input
+                      type="radio"
+                      name="sampleType"
+                      value="planning"
+                      checked={formData.sampleType === 'planning'}
+                      onChange={handleChange}
+                      className="form-radio text-emerald-600"
+                      disabled={submitting}
+                    />
+                    <span className="ml-2">企画サンプル</span>
+                  </label>
+                  <label className="inline-flex items-center">
+                    <input
+                      type="radio"
+                      name="sampleType"
+                      value="purchase"
+                      checked={formData.sampleType === 'purchase'}
+                      onChange={handleChange}
+                      className="form-radio text-emerald-600"
+                      disabled={submitting}
+                    />
+                    <span className="ml-2">購入サンプル</span>
+                  </label>
+                </div>
+                {errors.sampleType && <p className="mb-4 text-sm text-red-500">{errors.sampleType}</p>}
+
+                {/* 購入サンプル詳細情報 */}
+                {formData.sampleType === 'purchase' && (
+                  <div className="bg-gray-50 p-4 rounded-md border border-gray-200 grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="md:col-span-2">
+                      <h3 className="text-sm font-bold text-gray-700 mb-2">購入サンプル詳細</h3>
+                    </div>
+                    {/* ブランド */}
+                    <div>
+                      <label htmlFor="purchaseInfo.brand" className="block text-sm font-medium text-gray-700 mb-1">
+                        ブランド
+                      </label>
+                      <input
+                        id="purchaseInfo.brand"
+                        name="purchaseInfo.brand"
+                        type="text"
+                        value={formData.purchaseInfo.brand}
+                        onChange={handleChange}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500"
+                        disabled={submitting}
+                      />
+                    </div>
+                    {/* 担当者 */}
+                    <div>
+                      <label htmlFor="purchaseInfo.staff" className="block text-sm font-medium text-gray-700 mb-1">
+                        担当者
+                      </label>
+                      <input
+                        id="purchaseInfo.staff"
+                        name="purchaseInfo.staff"
+                        type="text"
+                        value={formData.purchaseInfo.staff}
+                        onChange={handleChange}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500"
+                        disabled={submitting}
+                      />
+                    </div>
+                    {/* 購入日 */}
+                    <div>
+                      <label htmlFor="purchaseInfo.purchaseDate" className="block text-sm font-medium text-gray-700 mb-1">
+                        購入日
+                      </label>
+                      <input
+                        id="purchaseInfo.purchaseDate"
+                        name="purchaseInfo.purchaseDate"
+                        type="date"
+                        value={formData.purchaseInfo.purchaseDate}
+                        onChange={handleChange}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500"
+                        disabled={submitting}
+                      />
+                    </div>
+                    {/* ポイント */}
+                    <div className="md:col-span-2">
+                      <label htmlFor="purchaseInfo.points" className="block text-sm font-medium text-gray-700 mb-1">
+                        ポイント
+                      </label>
+                      <textarea
+                        id="purchaseInfo.points"
+                        name="purchaseInfo.points"
+                        rows={2}
+                        value={formData.purchaseInfo.points}
+                        onChange={handleChange}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500"
+                        disabled={submitting}
+                      />
+                    </div>
+                  </div>
+                )}
               </div>
             </div>
           </div>

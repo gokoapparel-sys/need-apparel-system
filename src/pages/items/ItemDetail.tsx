@@ -305,6 +305,43 @@ const ItemDetail: React.FC = () => {
                 </div>
               )}
 
+              {/* サンプル種別 */}
+              <div>
+                <p className="text-sm text-gray-600">サンプル種別</p>
+                <p className="text-lg font-semibold text-gray-900">
+                  {item.sampleType === 'exhibition' ? '展示会サンプル' :
+                    item.sampleType === 'planning' ? '企画サンプル' :
+                      item.sampleType === 'purchase' ? '購入サンプル' : '-'}
+                </p>
+              </div>
+
+              {/* 購入サンプル詳細 */}
+              {item.sampleType === 'purchase' && item.purchaseInfo && (
+                <div className="md:col-span-2 bg-gray-50 p-4 rounded-lg mt-2 mb-4 border border-gray-200">
+                  <h3 className="text-base font-bold text-gray-800 mb-3 border-b border-gray-300 pb-2">購入サンプル詳細</h3>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                      <p className="text-xs text-gray-500 uppercase tracking-wider font-semibold">ブランド</p>
+                      <p className="text-base font-medium text-gray-900 mt-1">{item.purchaseInfo.brand || '-'}</p>
+                    </div>
+                    <div>
+                      <p className="text-xs text-gray-500 uppercase tracking-wider font-semibold">担当者</p>
+                      <p className="text-base font-medium text-gray-900 mt-1">{item.purchaseInfo.staff || '-'}</p>
+                    </div>
+                    <div>
+                      <p className="text-xs text-gray-500 uppercase tracking-wider font-semibold">購入日</p>
+                      <p className="text-base font-medium text-gray-900 mt-1">
+                        {formatDate(item.purchaseInfo.purchaseDate)}
+                      </p>
+                    </div>
+                    <div className="md:col-span-2">
+                      <p className="text-xs text-gray-500 uppercase tracking-wider font-semibold">ポイント</p>
+                      <p className="text-base font-medium text-gray-900 mt-1 whitespace-pre-wrap bg-white p-3 rounded border border-gray-100">{item.purchaseInfo.points || '-'}</p>
+                    </div>
+                  </div>
+                </div>
+              )}
+
               <div>
                 <p className="text-sm text-gray-600">ステータス</p>
                 <p className="text-lg font-semibold text-gray-900">

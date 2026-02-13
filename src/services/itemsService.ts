@@ -104,6 +104,7 @@ function toItem(id: string, d: any): Item {
 export interface ListItemsParams {
   q?: string // 検索クエリ（name, sku）
   itemNoPrefix?: string // アイテムNo.プレフィックス
+  sampleType?: string // サンプル種別でフィルター
   status?: 'active' | 'archived' // アイテムのステータスでフィルター
   sortBy?: 'createdAt' | 'updatedAt' | 'sku'
   sortOrder?: 'asc' | 'desc'
@@ -154,6 +155,7 @@ export const itemsService = {
     const {
       q,
       itemNoPrefix,
+      sampleType,
       sortBy = 'updatedAt',
       sortOrder = 'desc',
       lastDoc,
@@ -195,6 +197,11 @@ export const itemsService = {
         items = items.filter((item) => item.itemNo.startsWith(itemNoPrefix))
       } else if (itemNoPrefix === 'その他') {
         items = items.filter((item) => !item.itemNo.startsWith('NDC') && !item.itemNo.startsWith('NDF'))
+      }
+
+      // サンプル種別フィルタリング
+      if (sampleType && sampleType !== 'ALL') {
+        items = items.filter((item) => item.sampleType === sampleType || (!item.sampleType && sampleType === 'planning')) // デフォルトは企画サンプルとみなす場合もあるが、明示的にsampleTypeがあるものを優先
       }
 
       // hasMore の判定

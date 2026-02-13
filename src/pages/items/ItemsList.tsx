@@ -12,8 +12,9 @@ const ItemsList: React.FC = () => {
   const [items, setItems] = useState<Item[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
-  const [searchQuery, setSearchQuery] = useState('')
-  const [itemNoPrefixFilter, setItemNoPrefixFilter] = useState('ALL')
+  const [sampleTypeFilter, setSampleTypeFilter] = useState('ALL')
+  // const [searchQuery, setSearchQuery] = useState('') // 検索機能一時停止
+  // const [itemNoPrefixFilter, setItemNoPrefixFilter] = useState('ALL') // プレフィックスフィルター一時停止
   const [createdByFilter, setCreatedByFilter] = useState('')
   const [plannerIdFilter, setPlannerIdFilter] = useState('')
   const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc')
@@ -32,8 +33,9 @@ const ItemsList: React.FC = () => {
       setLoading(true)
       setError(null)
       const result: ListItemsResult = await itemsService.listItems({
-        q: searchQuery,
-        itemNoPrefix: itemNoPrefixFilter,
+        q: '', // searchQuery,
+        itemNoPrefix: 'ALL', // itemNoPrefixFilter,
+        sampleType: sampleTypeFilter,
         sortBy,
         sortOrder,
         lastDoc: direction === 'next' ? cursor : undefined,
@@ -73,7 +75,7 @@ const ItemsList: React.FC = () => {
     if (currentUser) {
       fetchItems('refresh')
     }
-  }, [currentUser, sortOrder, sortBy, itemNoPrefixFilter])
+  }, [currentUser, sortOrder, sortBy, sampleTypeFilter])
 
   // 検索
   const handleSearch = () => {
@@ -171,27 +173,19 @@ const ItemsList: React.FC = () => {
         <div className="card mb-6">
           <div className="flex flex-col md:flex-row gap-4">
             <div className="flex-1">
-              <label htmlFor="search" className="block text-sm font-medium text-gray-700 mb-1">
-                検索（名前、アイテムNo.）
+              <label htmlFor="sampleType" className="block text-sm font-medium text-gray-700 mb-1">
+                サンプル種別で絞り込み
               </label>
-              <input
-                id="search"
-                type="text"
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                onKeyPress={(e) => e.key === 'Enter' && handleSearch()}
-                placeholder="検索キーワードを入力..."
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500 mb-2"
-              />
               <select
-                value={itemNoPrefixFilter}
-                onChange={(e) => setItemNoPrefixFilter(e.target.value)}
+                id="sampleType"
+                value={sampleTypeFilter}
+                onChange={(e) => setSampleTypeFilter(e.target.value)}
                 className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500"
               >
                 <option value="ALL">すべて</option>
-                <option value="NDC">NDC</option>
-                <option value="NDF">NDF</option>
-                <option value="その他">その他</option>
+                <option value="exhibition">展示会サンプル</option>
+                <option value="planning">企画サンプル</option>
+                <option value="purchase">購入サンプル</option>
               </select>
             </div>
             <div className="flex-1">
