@@ -1,12 +1,12 @@
-import { Item, Pickup } from '../../types'
+import { Item, LoanShare } from '../../types'
 
-interface PickupCatalogHTMLProps {
-  pickup: Pickup
+interface LoanShareCatalogHTMLProps {
+  loanShare: LoanShare
   items: Item[]
   imageBase64Map?: Record<string, string>
 }
 
-export function generatePickupCatalogHTML({ pickup, items, imageBase64Map }: PickupCatalogHTMLProps): string {
+export function generateLoanShareCatalogHTML({ loanShare, items, imageBase64Map }: LoanShareCatalogHTMLProps): string {
   const formatDate = (timestamp: any): string => {
     if (!timestamp) return ''
     let date: Date
@@ -32,6 +32,12 @@ export function generatePickupCatalogHTML({ pickup, items, imageBase64Map }: Pic
   for (let i = 0; i < items.length; i += itemsPerPage) {
     pages.push(items.slice(i, i + itemsPerPage))
   }
+
+  // 最新のデザインに合わせたカラー定義
+  // Emerald-500: #10b981
+  // Teal-400: #2dd4bf
+  // Teal-500: #14b8a6
+  // Slate-700: #334155
 
   return `
     <!DOCTYPE html>
@@ -59,8 +65,8 @@ export function generatePickupCatalogHTML({ pickup, items, imageBase64Map }: Pic
 
         /* 表紙スタイル */
         .cover-page {
-          /* Rose Pink Gradient for Customer - Feminine and Elegant */
-          background: linear-gradient(135deg, #f472b6 0%, #db2777 50%, #be185d 100%);
+          /* Emerald Gradient */
+          background: linear-gradient(135deg, #10b981 0%, #2dd4bf 100%);
           display: flex;
           flex-direction: column;
           justify-content: center;
@@ -97,72 +103,89 @@ export function generatePickupCatalogHTML({ pickup, items, imageBase64Map }: Pic
           color: white;
           position: relative;
           z-index: 1;
+          width: 80%;
+          background: rgba(255, 255, 255, 0.2);
+          backdrop-filter: blur(10px);
+          -webkit-backdrop-filter: blur(10px);
+          padding: 60px;
+          border-radius: 24px;
+          border: 1px solid rgba(255, 255, 255, 0.4);
+          box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
         }
 
         .cover-logo {
           width: 240px;
-          height: 60px;
+          height: auto;
           background: white;
           margin: 0 auto 40px;
           border-radius: 12px;
           display: flex;
           align-items: center;
           justify-content: center;
-          font-size: 36px;
-          font-weight: 900;
-          color: #be185d; /* Deep Pink Logo Text */
-          box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
-          letter-spacing: 6px;
-          line-height: 1;
-          padding-top: 3px;
+          padding: 15px;
+          box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
+        }
+        
+        .cover-logo img {
+            width: 100%;
+            height: auto;
+        }
+
+        .cover-logo-text {
+             font-size: 36px;
+             font-weight: 900;
+             color: #10b981;
+             letter-spacing: 4px;
         }
 
         .cover-company {
-          font-size: 16px;
-          margin-bottom: 80px;
-          opacity: 0.95;
+          font-size: 14px;
+          margin-bottom: 20px;
+          opacity: 0.9;
           letter-spacing: 2px;
           color: white;
           text-align: center;
-          line-height: 1.5;
+          font-weight: bold;
           text-shadow: 0 1px 2px rgba(0,0,0,0.1);
         }
 
         .cover-title {
           font-size: 56px;
-          font-weight: bold;
-          margin-bottom: 25px;
-          text-shadow: 0 2px 5px rgba(0,0,0,0.1);
+          font-weight: 900;
+          margin-bottom: 10px;
+          text-shadow: 0 2px 5px rgba(0,0,0,0.2);
           line-height: 1.2;
-          letter-spacing: 2px;
+          letter-spacing: 1px;
         }
 
-        .cover-subtitle {
-          font-size: 28px;
-          margin-bottom: 50px;
-          opacity: 0.95;
-          font-weight: 300;
-          letter-spacing: 3px;
+        .cover-subtitle-en {
+            font-size: 16px;
+            letter-spacing: 4px;
+            text-transform: uppercase;
+            opacity: 0.9;
+            margin-bottom: 40px;
+            font-weight: 700;
+        }
+
+        .cover-client-name {
+          font-size: 36px;
+          margin-bottom: 15px;
+          font-weight: bold;
+          text-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        
+        .cover-client-company {
+            font-size: 24px;
+            margin-bottom: 40px;
+            font-weight: 500;
+            opacity: 0.95;
         }
 
         .cover-info {
-          font-size: 16px;
-          margin-bottom: 12px;
-          line-height: 1.8;
-          opacity: 0.9;
-        }
-
-        .cover-badge {
-          display: inline-block;
-          background: white;
-          color: #db2777; /* Pink Text */
-          padding: 14px 40px;
-          border-radius: 30px;
-          margin-top: 20px;
-          font-size: 16px;
-          font-weight: bold;
-          box-shadow: 0 8px 20px rgba(0,0,0,0.1);
-          letter-spacing: 1px;
+          font-size: 18px;
+          margin-bottom: 8px;
+          line-height: 1.6;
+          font-weight: 500;
         }
 
         .cover-footer {
@@ -171,40 +194,44 @@ export function generatePickupCatalogHTML({ pickup, items, imageBase64Map }: Pic
           text-align: center;
           color: rgba(255,255,255,0.8);
           font-size: 12px;
+          width: 100%;
         }
 
         /* コンテンツページスタイル */
         .content-page {
           padding: 15px 20px;
-          background: linear-gradient(to bottom, #fff1f2 0%, #ffffff 100%); /* Rose bg */
+          background: #f8fafc; /* Slate-50 */
         }
 
         .page-header {
-          margin-bottom: 8px;
-          padding: 8px 12px;
-          background: linear-gradient(135deg, #ec4899 0%, #be185d 100%); /* Pink Gradient */
-          border-radius: 6px;
-          box-shadow: 0 2px 10px rgba(190, 24, 93, 0.2);
-          text-align: left;
+          margin-bottom: 10px;
+          padding: 10px 20px;
+          background: linear-gradient(135deg, #10b981 0%, #14b8a6 100%); /* Emerald to Teal */
+          border-radius: 8px;
+          box-shadow: 0 2px 10px rgba(16, 185, 129, 0.2);
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+          color: white;
         }
 
         .page-title {
-          font-size: 28px;
+          font-size: 24px;
           font-weight: bold;
-          color: white;
-          margin-bottom: 8px;
           letter-spacing: 1px;
+          text-shadow: 0 1px 2px rgba(0,0,0,0.1);
         }
 
         .page-subtitle {
           font-size: 12px;
-          color: rgba(255,255,255,0.9);
+          opacity: 0.9;
+          font-weight: 500;
         }
 
         .items-grid {
           display: grid;
           grid-template-columns: repeat(5, 1fr);
-          gap: 8px;
+          gap: 10px;
         }
 
         .item-card {
@@ -212,34 +239,30 @@ export function generatePickupCatalogHTML({ pickup, items, imageBase64Map }: Pic
           padding: 8px;
           border-radius: 8px;
           background: white;
-          box-shadow: 0 2px 10px rgba(190, 24, 93, 0.08); /* Pink shadow */
+          box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
           position: relative;
           overflow: hidden;
+          height: 310px; /* Reduced height to prevent footer overlap */
         }
-
-        .item-card::before {
-          content: '';
-          position: absolute;
-          top: 0;
-          left: 0;
-          width: 100%;
-          height: 3px;
-          background: linear-gradient(to right, #f472b6, #db2777);
+        
+        .item-card-header {
+            border-bottom: 2px solid #e2e8f0;
+            padding-bottom: 5px;
+            margin-bottom: 5px;
         }
 
         .item-image {
           width: 100%;
-          height: 140px;
-          background: #ffffff;
+          height: 160px; /* Reduced height */
+          background: #f1f5f9;
           display: flex;
           align-items: center;
           justify-content: center;
-          color: #999;
+          color: #94a3b8;
           font-size: 10px;
-          margin-bottom: 6px;
+          margin-bottom: 8px;
           border-radius: 6px;
           overflow: hidden;
-          border: 1px solid #fce7f3;
           position: relative;
         }
 
@@ -267,46 +290,45 @@ export function generatePickupCatalogHTML({ pickup, items, imageBase64Map }: Pic
         }
 
         .item-no {
-          font-size: 20px;
+          font-size: 16px;
           font-weight: bold;
-          color: #831843; /* Dark Pink */
-          margin-bottom: 4px;
+          color: #0f172a; /* Slate-900 */
           letter-spacing: 0.5px;
-          padding-bottom: 4px;
-          border-bottom: 2px solid #fbcfe8;
         }
 
         .item-name {
-          font-size: 13px;
-          font-weight: bold;
-          color: #9d174d; /* Medium Pink */
+          font-size: 11px;
+          font-weight: 500;
+          color: #334155; /* Slate-700 */
           margin-bottom: 6px;
           line-height: 1.4;
-          min-height: 36px;
+          height: 32px; /* 2行分確保 */
+          overflow: hidden;
         }
 
         .item-field {
-          font-size: 9px;
-          margin-bottom: 3px;
+          font-size: 10px;
+          margin-bottom: 2px;
           line-height: 1.5;
+          display: flex;
         }
 
         .field-label {
-          display: inline-block;
           min-width: 50px;
           font-weight: bold;
-          color: #94a3b8;
+          color: #64748b; /* Slate-500 */
         }
 
         .field-value {
-          color: #334155;
+          color: #0f172a; /* Slate-900 */
+          font-weight: 500;
         }
 
         .page-footer {
           position: absolute;
-          bottom: 20px;
-          left: 40px;
-          right: 40px;
+          bottom: 15px;
+          left: 20px;
+          right: 20px;
           text-align: center;
           padding-top: 10px;
           border-top: 1px solid #e2e8f0;
@@ -319,29 +341,45 @@ export function generatePickupCatalogHTML({ pickup, items, imageBase64Map }: Pic
       <!-- 表紙 -->
       <div class="pdf-page cover-page">
         <div class="cover-content">
-          <div class="cover-logo">NEED</div>
-          <div class="cover-company">株式会社ニード | NEED Co., Ltd.</div>
-          <div class="cover-title">ピックアップリスト</div>
-          <div class="cover-subtitle">${pickup.customerName} 様</div>
-          <div class="cover-info">展示会: ${pickup.exhibitionName || '-'}</div>
-          <div class="cover-info">作成日: ${formatDate(pickup.createdDate)}</div>
-          <div class="cover-info">コード: ${pickup.pickupCode}</div>
-          <div class="cover-badge">選択アイテム一覧</div>
+          <div class="cover-logo">
+             <div class="cover-logo-text">NEED</div>
+          </div>
+          
+          <div class="cover-title">Sample Pickup Card</div>
+          <div class="cover-subtitle-en">Official Loan Documentation</div>
+          
+          <div class="cover-client-name">${loanShare.borrowerName} 様</div>
+          ${loanShare.borrowerCompany ? `<div class="cover-client-company">${loanShare.borrowerCompany}</div>` : ''}
+          
+          <div style="margin-top: 30px; display: flex; justify-content: center; gap: 40px;">
+             <div style="background: rgba(255,255,255,0.2); padding: 15px 30px; border-radius: 12px; border: 1px solid rgba(255,255,255,0.3);">
+                <div style="font-size: 12px; font-weight: bold; letter-spacing: 2px; margin-bottom: 5px;">TOTAL ITEMS</div>
+                <div style="font-size: 32px; font-weight: 900; text-shadow: 0 2px 4px rgba(0,0,0,0.1);">${items.length} <span style="font-size: 14px; font-weight: normal;">items</span></div>
+             </div>
+             <div style="background: rgba(255,255,255,0.2); padding: 15px 30px; border-radius: 12px; border: 1px solid rgba(255,255,255,0.3);">
+                <div style="font-size: 12px; font-weight: bold; letter-spacing: 2px; margin-bottom: 5px;">DATE</div>
+                <div style="font-size: 24px; font-weight: 900; margin-top: 5px; text-shadow: 0 2px 4px rgba(0,0,0,0.1);">${formatDate(loanShare.createdAt)}</div>
+             </div>
+          </div>
         </div>
-        <div class="cover-footer">株式会社ニード NEED Co., Ltd.</div>
+        <div class="cover-footer">株式会社ニード | NEED Co., Ltd.</div>
       </div>
 
       <!-- 商品ページ -->
       ${pages.map((pageItems, pageIndex) => `
         <div class="pdf-page content-page">
           <div class="page-header">
-            <div class="page-title">ピックアップリスト - ${pickup.customerName} 様</div>
-            <div class="page-subtitle">${pickup.exhibitionName || ''} | ${formatDate(pickup.createdDate)} | コード: ${pickup.pickupCode}</div>
+            <div class="page-title">Sample Pickup Card</div>
+            <div class="page-subtitle">${loanShare.borrowerName} 様 | ${formatDate(loanShare.createdAt)}</div>
           </div>
 
           <div class="items-grid">
             ${pageItems.map(item => `
               <div class="item-card">
+                <div class="item-card-header">
+                    <div class="item-no">${item.itemNo}</div>
+                </div>
+                
                 <div class="item-image">
             ${(() => {
       if (item.images && item.images.length > 0) {
@@ -351,7 +389,6 @@ export function generatePickupCatalogHTML({ pickup, items, imageBase64Map }: Pic
         if (base64Image && base64Image.startsWith('data:image/')) {
           return `<img src="${base64Image}" alt="${item.name}" />`
         } else {
-          console.warn('画像データが見つかりません:', item.itemNo, imageUrl)
           return '<div style="color: #999; font-size: 10px;">画像なし</div>'
         }
       } else {
@@ -360,22 +397,27 @@ export function generatePickupCatalogHTML({ pickup, items, imageBase64Map }: Pic
     })()}
                   <div class="watermark">NEED</div>
                 </div>
-                <div class="item-no">${item.itemNo}</div>
+                
                 <div class="item-name">${item.name.replace(/[\s\u3000（(]/g, (match) => match === ' ' || match === '　' ? '' : '<br />' + match)}</div>
+                
                 <div class="item-field">
                   <span class="field-label">混率:</span>
                   <span class="field-value">${item.composition || '-'}</span>
                 </div>
                 <div class="item-field">
-                  <span class="field-label">生地No.:</span>
+                  <span class="field-label">生地No:</span>
                   <span class="field-value">${item.fabricNo || '-'}</span>
+                </div>
+                <div class="item-field">
+                  <span class="field-label">価格:</span>
+                  <span class="field-value">${item.referencePrice ? `¥${item.referencePrice.toLocaleString()}` : (item.dollarPrice ? `$${item.dollarPrice}` : '-')}</span>
                 </div>
               </div>
             `).join('')}
           </div>
 
           <div class="page-footer">
-            株式会社ニード NEED Co., Ltd. | ページ ${pageIndex + 2} / ${pages.length + 1}
+            株式会社ニード NEED Co., Ltd. | Page ${pageIndex + 1} of ${pages.length}
           </div>
         </div>
       `).join('')}

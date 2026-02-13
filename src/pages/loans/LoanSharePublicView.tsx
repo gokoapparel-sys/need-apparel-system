@@ -4,6 +4,9 @@ import { loanSharesService } from '../../services/loanSharesService'
 import { loansService } from '../../services/loansService'
 import { itemsService } from '../../services/itemsService'
 import { LoanShare, Loan, Item } from '../../types'
+import { generateLoanShareCatalogHTML } from '../../utils/pdfGenerators/loanShareCatalogHTML'
+import { generatePDFFromHTML } from '../../utils/pdfGenerators/htmlToPdfGenerator'
+import { convertImagesToBase64 } from '../../utils/imageUtils'
 
 interface LoanItemData {
   loan: Loan
@@ -16,7 +19,8 @@ const LoanSharePublicView: React.FC = () => {
   const [loanShare, setLoanShare] = useState<LoanShare | null>(null)
   const [loanItems, setLoanItems] = useState<LoanItemData[]>([])
   const [loading, setLoading] = useState(true)
-  const [error, setError] = useState(false)
+  const [error, setError] = useState<string | boolean>(false)
+  const [isExporting, setIsExporting] = useState(false)
   const [selectedImage, setSelectedImage] = useState<string | null>(null)
   const [selectedItem, setSelectedItem] = useState<Item | null>(null)
 
@@ -55,7 +59,7 @@ const LoanSharePublicView: React.FC = () => {
       setLoanItems(data)
     } catch (error) {
       console.error('貸出カード読み込みエラー:', error)
-      setError(true)
+      setError('データの読み込み中にエラーが発生しました。')
     } finally {
       setLoading(false)
     }
@@ -78,24 +82,56 @@ const LoanSharePublicView: React.FC = () => {
     })
   }
 
+  const handleExportPDF = async () => {
+    if (!loanShare || loanItems.length === 0) return
+
+    try {
+      setIsExporting(true)
+
+      // 画像URLを収集
+      const imageUrls: string[] = []
+      loanItems.forEach(loanItem => {
+        if (loanItem.item?.images && loanItem.item.images.length > 0) {
+          imageUrls.push(loanItem.item.images[0].url)
+        }
+      })
+
+      // 画像をBase64に変換
+      const imageBase64Map = await convertImagesToBase64(imageUrls)
+
+      // HTML生成
+      const htmlContent = generateLoanShareCatalogHTML({
+        loanShare,
+        items: loanItems.map(li => li.item).filter(Boolean) as Item[], // 型互換性のためにキャスト
+        imageBase64Map
+      })
+
+      // PDF生成 & ダウンロード
+      const filename = `SampleLoanCard_${loanShare.borrowerName}.pdf`
+      await generatePDFFromHTML(htmlContent, filename, 'landscape')
+
+    } catch (error) {
+      console.error('PDF export failed:', error)
+      alert('PDFの出力に失敗しました。')
+    } finally {
+      setIsExporting(false)
+    }
+  }
+
   if (loading) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-emerald-600"></div>
+      <div className="min-h-screen flex items-center justify-center bg-gray-50">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-emerald-500"></div>
       </div>
     )
   }
 
   if (error || !loanShare) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="card max-w-md text-center">
-          <h2 className="text-2xl font-bold text-gray-900 mb-4">貸出カードが見つかりません</h2>
-          <p className="text-gray-600">
-            このリンクは無効か、すでに削除されています。
-            <br />
-            担当者にお問い合わせください。
-          </p>
+      <div className="min-h-screen flex items-center justify-center bg-gray-50">
+        <div className="text-center">
+          <h1 className="text-2xl font-bold text-gray-800 mb-2">エラーが発生しました</h1>
+          <p className="text-gray-600">{error || 'データが見つかりません'}</p>
         </div>
       </div>
     )
@@ -104,54 +140,94 @@ const LoanSharePublicView: React.FC = () => {
   return (
     <div className="min-h-screen bg-gradient-to-b from-gray-50 to-white">
       {/* ヘッダー */}
-      <header className="relative bg-gradient-to-br from-emerald-800 via-emerald-600 to-emerald-500 text-white shadow-2xl overflow-hidden">
-        <div className="absolute top-0 right-0 w-96 h-96 bg-gradient-radial from-amber-400/20 to-transparent rounded-full blur-3xl -translate-y-1/2 translate-x-1/2"></div>
-        <div className="absolute bottom-0 left-0 w-80 h-80 bg-gradient-radial from-emerald-400/20 to-transparent rounded-full blur-3xl translate-y-1/2 -translate-x-1/2"></div>
+      <header className="relative bg-gradient-to-br from-emerald-500 to-teal-400 text-white shadow-xl overflow-hidden min-h-[400px] flex items-center justify-center">
 
-        <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-          {/* ロゴ */}
-          <div className="flex items-center justify-center mb-8">
-            <div className="bg-gradient-to-r from-amber-400 to-amber-500 text-emerald-900 font-black text-4xl px-8 py-3 rounded-xl shadow-lg">
-              NEED
+        {/* PDFダウンロードボタン */}
+        <div className="absolute top-6 right-6 z-50">
+          <button
+            onClick={handleExportPDF}
+            disabled={isExporting}
+            className={`flex items-center gap-2 px-6 py-3 bg-white/20 backdrop-blur-md border border-white/40 rounded-full font-bold text-white shadow-lg hover:bg-white/30 transition-all ${isExporting ? 'opacity-50 cursor-not-allowed' : ''
+              }`}
+          >
+            {isExporting ? (
+              <>
+                <div className="animate-spin h-4 w-4 border-2 border-white border-t-transparent rounded-full"></div>
+                <span>Generating...</span>
+              </>
+            ) : (
+              <>
+                <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                </svg>
+                <span>DOWNLOAD PDF</span>
+              </>
+            )}
+          </button>
+        </div>
+        {/* 背景装飾 */}
+        <div className="absolute top-0 left-0 w-full h-full overflow-hidden z-0">
+          <div className="absolute -top-[20%] -right-[10%] w-[600px] h-[600px] bg-white/20 rounded-full blur-[80px] animate-pulse"></div>
+          <div className="absolute bottom-[0%] -left-[10%] w-[500px] h-[500px] bg-cyan-300/30 rounded-full blur-[60px]"></div>
+          <div className="absolute top-[40%] left-[30%] w-[200px] h-[200px] bg-yellow-200/20 rounded-full blur-[40px]"></div>
+        </div>
+
+        <div className="relative max-w-5xl mx-auto px-6 py-16 z-10 w-full">
+          {/* ロゴ & タイトルエリア */}
+          <div className="text-center mb-12">
+            <div className="inline-block mb-6 bg-white p-4 rounded-xl shadow-lg">
+              <img src="/need-logo.svg" alt="NEED" className="h-12 w-auto" />
+            </div>
+
+            <div className="space-y-2">
+              <h1 className="text-4xl md:text-5xl font-bold tracking-tight text-white mb-2 drop-shadow-md">
+                Sample Pickup Card
+              </h1>
+              <p className="text-emerald-50 text-sm tracking-[0.2em] uppercase font-medium">
+                Official Loan Documentation
+              </p>
             </div>
           </div>
 
-          {/* 会社名 */}
-          <div className="text-center mb-6">
-            <p className="text-lg font-medium tracking-wider opacity-95">
+          {/* 貸出情報カード (Glassmorphism) */}
+          <div className="backdrop-blur-md bg-white/30 border-2 border-white/50 rounded-3xl p-8 shadow-2xl relative overflow-hidden group hover:bg-white/35 transition-all duration-500">
+            {/* カード背景の光沢 */}
+            <div className="absolute top-0 left-0 w-full h-full bg-gradient-to-br from-white/30 to-transparent pointer-events-none"></div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-8 items-center relative z-10">
+              {/* 左側: メイン情報 */}
+              <div className="text-center md:text-left space-y-4 border-b md:border-b-0 md:border-r border-white/30 pb-6 md:pb-0 md:pr-8">
+                <div>
+                  <p className="text-white text-xs font-black tracking-wider uppercase mb-2 drop-shadow-md">Client Name</p>
+                  <h2 className="text-3xl font-black text-white tracking-tight leading-tight drop-shadow-lg filter">
+                    {loanShare.borrowerName} <span className="text-lg font-bold">様</span>
+                  </h2>
+                  {loanShare.borrowerCompany && (
+                    <p className="text-xl text-white mt-2 font-bold drop-shadow-md">
+                      {loanShare.borrowerCompany}
+                    </p>
+                  )}
+                </div>
+              </div>
+
+              {/* 右側: 詳細スタッツ */}
+              <div className="grid grid-cols-2 gap-6 pl-0 md:pl-4">
+                <div className="bg-emerald-900/30 rounded-2xl p-4 border border-white/40 shadow-lg text-center backdrop-blur-md hover:bg-emerald-900/40 transition-colors">
+                  <p className="text-white text-[10px] font-black uppercase tracking-widest mb-1 drop-shadow-md">Total Items</p>
+                  <p className="text-4xl font-black text-white drop-shadow-xl">{loanItems.length}<span className="text-sm font-bold text-white ml-1">items</span></p>
+                </div>
+                <div className="bg-emerald-900/30 rounded-2xl p-4 border border-white/40 shadow-lg text-center backdrop-blur-md hover:bg-emerald-900/40 transition-colors">
+                  <p className="text-white text-[10px] font-black uppercase tracking-widest mb-1 drop-shadow-md">Date</p>
+                  <p className="text-xl font-black text-white mt-1 drop-shadow-xl">{formatDate(loanShare.createdAt)}</p>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div className="mt-8 text-center">
+            <p className="text-emerald-100/70 text-xs tracking-widest">
               株式会社 ニード | NEED Co.,Ltd.
             </p>
-          </div>
-
-          {/* タイトル */}
-          <div className="text-center mb-8">
-            <h1 className="text-4xl sm:text-5xl font-bold mb-3 tracking-tight drop-shadow-lg">
-              Sample Pickup Card
-            </h1>
-          </div>
-
-          {/* 貸出先情報 */}
-          <div className="bg-white/10 backdrop-blur-sm rounded-2xl p-6 max-w-3xl mx-auto border border-white/20 shadow-xl">
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-center sm:text-left">
-              <div>
-                <p className="text-emerald-100 text-sm mb-1 font-medium">貸出先</p>
-                <p className="text-xl font-bold">{loanShare.borrowerName} 様</p>
-              </div>
-              {loanShare.borrowerCompany && (
-                <div>
-                  <p className="text-emerald-100 text-sm mb-1 font-medium">会社名</p>
-                  <p className="text-xl font-semibold">{loanShare.borrowerCompany}</p>
-                </div>
-              )}
-              <div>
-                <p className="text-emerald-100 text-sm mb-1 font-medium">貸出アイテム数</p>
-                <p className="text-xl font-bold">{loanItems.length} 件</p>
-              </div>
-              <div>
-                <p className="text-emerald-100 text-sm mb-1 font-medium">作成日</p>
-                <p className="text-xl font-semibold">{formatDate(loanShare.createdAt)}</p>
-              </div>
-            </div>
           </div>
         </div>
       </header>
@@ -166,7 +242,7 @@ const LoanSharePublicView: React.FC = () => {
               <div className="p-5">
                 {/* 画像 */}
                 <div
-                  className="aspect-square w-full bg-gradient-to-br from-gray-50 to-gray-100 rounded-lg overflow-hidden mb-4 border border-gray-200 cursor-pointer hover:shadow-lg transition-all duration-200 hover:scale-105"
+                  className="aspect-square w-full bg-gradient-to-br from-gray-50 to-gray-100 rounded-lg overflow-hidden mb-4 border border-gray-200 cursor-pointer hover:shadow-lg transition-all duration-200 hover:scale-105 relative"
                   onClick={() => {
                     if (item?.images && item.images.length > 0) {
                       setSelectedImage(item.images[0].url)
@@ -175,11 +251,16 @@ const LoanSharePublicView: React.FC = () => {
                   }}
                 >
                   {item?.images && item.images.length > 0 ? (
-                    <img
-                      src={item.images[0].url}
-                      alt={item.name}
-                      className="w-full h-full object-contain"
-                    />
+                    <>
+                      <img
+                        src={item.images[0].url}
+                        alt={item.name}
+                        className="w-full h-full object-contain"
+                      />
+                      <div className="absolute bottom-2 left-[67.5%] transform -translate-x-1/2 text-lg font-black text-white/50 drop-shadow-sm pointer-events-none select-none z-10 tracking-widest whitespace-nowrap">
+                        NEED
+                      </div>
+                    </>
                   ) : (
                     <div className="w-full h-full flex items-center justify-center text-gray-400">
                       <div className="text-center">
@@ -266,12 +347,15 @@ const LoanSharePublicView: React.FC = () => {
               </svg>
             </button>
 
-            <div className="flex-1 flex items-center justify-center" onClick={(e) => e.stopPropagation()}>
+            <div className="flex-1 flex items-center justify-center relative overflow-hidden" onClick={(e) => e.stopPropagation()}>
               <img
                 src={selectedImage}
                 alt={selectedItem?.name || '商品画像'}
-                className="max-w-full max-h-[85vh] object-contain rounded-lg shadow-2xl"
+                className="max-w-full max-h-[85vh] object-contain rounded-lg shadow-2xl relative z-10"
               />
+              <div className="absolute bottom-8 left-[67.5%] transform -translate-x-1/2 text-5xl font-black text-white/50 drop-shadow-md select-none pointer-events-none whitespace-nowrap z-20 tracking-widest">
+                NEED
+              </div>
             </div>
 
             {selectedItem && (
@@ -290,8 +374,9 @@ const LoanSharePublicView: React.FC = () => {
             )}
           </div>
         </div>
-      )}
-    </div>
+      )
+      }
+    </div >
   )
 }
 
