@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import { useAuth } from '../../contexts/AuthContext'
 import { loansService } from '../../services/loansService'
+import { loanSharesService } from '../../services/loanSharesService'
 import { itemsService } from '../../services/itemsService'
 import { exhibitionsService } from '../../services/exhibitionsService'
 import { Loan, Item, Exhibition } from '../../types'
@@ -25,6 +26,10 @@ const LoanForm: React.FC = () => {
     status: 'borrowed' as 'borrowed' | 'returned',
   })
 
+  // 新規作成用追加フィールド
+  const [cardName, setCardName] = useState('')
+  const [expectedReturnDate, setExpectedReturnDate] = useState('')
+
   const [exhibitions, setExhibitions] = useState<Exhibition[]>([])
   const [selectedExhibitionId, setSelectedExhibitionId] = useState('')
   const [availableItems, setAvailableItems] = useState<Item[]>([])
@@ -34,6 +39,9 @@ const LoanForm: React.FC = () => {
   const [submitting, setSubmitting] = useState(false)
   const [activeLoans, setActiveLoans] = useState<Loan[]>([])
   const [selectedItems, setSelectedItems] = useState<Item[]>([])
+
+  // 新規作成後の成功パネル用
+  const [successPanel, setSuccessPanel] = useState<{ shareUrl: string } | null>(null)
 
   useEffect(() => {
     loadData()
@@ -98,11 +106,9 @@ const LoanForm: React.FC = () => {
       setLoadingItems(true)
       try {
         if (!selectedExhibitionId) {
-          // 展示会が選択されていない場合は全アイテムを取得
           const allItems = await itemsService.listAllItems({ status: 'active' })
           setAvailableItems(allItems)
         } else {
-          // 展示会が選択されている場合はそのアイテムのみ取得
           const ex = exhibitions.find(e => e.id === selectedExhibitionId)
           if (ex && ex.catalogItemIds && ex.catalogItemIds.length > 0) {
             const items = await itemsService.getItemsByIds(ex.catalogItemIds)
@@ -135,15 +141,13 @@ const LoanForm: React.FC = () => {
   const handleItemClick = (item: Item) => {
     if (submitting) return
 
-    // 貸出中チェック（編集モードで自分自身のアイテムならOK）
     const activeLoan = activeLoans.find(l => l.itemId === item.id && l.status === 'borrowed')
     const isSelfLoan = isEditMode && activeLoan && activeLoan.itemId === formData.itemId
     if (activeLoan && !isSelfLoan) {
-      return // 貸出中は選択不可
+      return
     }
 
     if (isEditMode) {
-      // 編集モード：単一選択（入れ替え）
       setSelectedItems([item])
       setFormData(prev => ({
         ...prev,
@@ -152,7 +156,6 @@ const LoanForm: React.FC = () => {
         itemName: item.name,
       }))
     } else {
-      // 新規モード：複数選択（トグル）
       setSelectedItems(prev => {
         const exists = prev.find(i => i.id === item.id)
         if (exists) {
@@ -168,7 +171,6 @@ const LoanForm: React.FC = () => {
     if (submitting) return
     setSelectedItems(prev => prev.filter(i => i.id !== itemId))
 
-    // 編集モードで削除された場合はフォームデータもクリア（必須チェックで引っかかるようにする）
     if (isEditMode && formData.itemId === itemId) {
       setFormData(prev => ({ ...prev, itemId: '', itemNo: '', itemName: '' }))
     }
@@ -197,10 +199,17 @@ const LoanForm: React.FC = () => {
       return
     }
 
+    // 新規作成時の追加バリデーション
+    if (!isEditMode) {
+      if (!formData.borrowerName.trim()) {
+        alert('貸出先を入力してください')
+        return
+      }
+    }
+
     try {
       setSubmitting(true)
 
-      // 共通のデータ
       const baseData: Record<string, any> = {
         staff: formData.staff,
         borrowDate: Timestamp.fromDate(new Date(formData.borrowDate)),
@@ -222,23 +231,38 @@ const LoanForm: React.FC = () => {
         } as any
         await loansService.updateLoan(id, loanData)
         alert('貸出記録を更新しました')
+        navigate('/loans')
       } else {
-        // 新規：複数レコード作成
-        const promises = selectedItems.map(item => {
-          const loanData = {
-            ...baseData,
-            itemId: item.id!,
-            itemNo: item.itemNo,
-            itemName: item.name,
-          } as any
-          return loansService.createLoan(loanData)
-        })
+        // 新規：複数レコード作成 + LoanShare作成
+        const loanIds = await Promise.all(
+          selectedItems.map(item => {
+            const loanData = {
+              ...baseData,
+              itemId: item.id!,
+              itemNo: item.itemNo,
+              itemName: item.name,
+            } as any
+            return loansService.createLoan(loanData)
+          })
+        )
 
-        await Promise.all(promises)
-        alert(`${selectedItems.length}件の貸出記録を作成しました`)
+        // LoanShare作成
+        const shareData: Record<string, any> = {
+          cardName: cardName.trim(),
+          borrowerName: formData.borrowerName.trim(),
+          staff: formData.staff.trim(),
+          loanIds,
+        }
+        if (expectedReturnDate) {
+          shareData.expectedReturnDate = Timestamp.fromDate(new Date(expectedReturnDate))
+        }
+        if (currentUser?.email) shareData.createdBy = currentUser.email
+
+        const shareId = await loanSharesService.createLoanShare(shareData as any)
+        const shareUrl = loanSharesService.generateShareUrl(shareId)
+
+        setSuccessPanel({ shareUrl })
       }
-
-      navigate('/loans')
     } catch (error) {
       console.error('保存エラー:', error)
       alert('保存に失敗しました')
@@ -255,6 +279,54 @@ const LoanForm: React.FC = () => {
     )
   }
 
+  // 成功パネル表示
+  if (successPanel) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
+        <div className="bg-white rounded-2xl shadow-xl p-8 max-w-lg w-full">
+          <div className="text-center mb-6">
+            <div className="inline-flex items-center justify-center w-16 h-16 bg-green-100 rounded-full mb-4">
+              <svg className="w-8 h-8 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+              </svg>
+            </div>
+            <h2 className="text-2xl font-bold text-gray-900">貸出カードを作成しました</h2>
+            <p className="text-gray-500 mt-2 text-sm">{selectedItems.length}件の貸出記録と貸出カードが作成されました</p>
+          </div>
+
+          <div className="bg-green-50 border border-green-200 rounded-lg p-4 mb-6">
+            <p className="text-xs text-gray-500 mb-2 font-medium">公開URL（このURLを貸出先に共有してください）</p>
+            <p className="text-sm font-mono text-gray-900 break-all select-all bg-white rounded p-2 border border-green-100">{successPanel.shareUrl}</p>
+          </div>
+
+          <div className="flex flex-col gap-3">
+            <button
+              onClick={() => {
+                navigator.clipboard.writeText(successPanel.shareUrl)
+                alert('URLをクリップボードにコピーしました')
+              }}
+              className="w-full px-4 py-3 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 font-bold shadow"
+            >
+              URLをコピー
+            </button>
+            <button
+              onClick={() => window.open(successPanel.shareUrl, '_blank')}
+              className="w-full px-4 py-3 bg-white text-emerald-700 border border-emerald-300 rounded-lg hover:bg-emerald-50 font-bold"
+            >
+              プレビューを開く
+            </button>
+            <button
+              onClick={() => navigate('/loans')}
+              className="w-full px-4 py-3 text-gray-600 hover:text-gray-800 font-medium text-sm"
+            >
+              サンプル貸出トップに戻る
+            </button>
+          </div>
+        </div>
+      </div>
+    )
+  }
+
   return (
     <div className="min-h-screen bg-gray-50">
       {/* ナビゲーションバー */}
@@ -266,7 +338,7 @@ const LoanForm: React.FC = () => {
                 onClick={() => navigate('/loans')}
                 className="inline-flex items-center px-6 py-3 bg-gradient-to-r from-emerald-800 to-emerald-900 text-white font-bold rounded-lg hover:from-emerald-900 hover:to-black transition-all shadow-lg"
               >
-                ← 一覧
+                ← 戻る
               </button>
               <h1 className="text-xl font-bold text-primary-700 ml-6">
                 {isEditMode ? '貸出記録編集' : '新規貸出'}
@@ -287,28 +359,44 @@ const LoanForm: React.FC = () => {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6 items-start">
               {/* 左カラム：入力フォーム群 */}
               <div className="space-y-5">
-                <div>
-                  <label htmlFor="exhibitionId" className="block text-sm font-medium text-gray-700 mb-1">
-                    展示会で絞り込み <span className="text-gray-500 text-xs">(任意)</span>
-                  </label>
-                  <select
-                    id="exhibitionId"
-                    value={selectedExhibitionId}
-                    onChange={(e) => {
-                      setSelectedExhibitionId(e.target.value)
-                    }}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500"
-                    disabled={submitting}
-                  >
-                    <option value="">すべてのアイテムから選択</option>
-                    {exhibitions.map((ex) => (
-                      <option key={ex.id} value={ex.id}>
-                        {ex.exhibitionName} ({ex.exhibitionCode})
-                      </option>
-                    ))}
-                  </select>
-                </div>
 
+                {/* カード名（新規作成のみ） */}
+                {!isEditMode && (
+                  <div>
+                    <label htmlFor="cardName" className="block text-sm font-medium text-gray-700 mb-1">
+                      カード名 <span className="text-gray-500 text-xs">(任意)</span>
+                    </label>
+                    <input
+                      id="cardName"
+                      type="text"
+                      value={cardName}
+                      onChange={(e) => setCardName(e.target.value)}
+                      placeholder="例: 2024秋冬展示会サンプル"
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500"
+                      disabled={submitting}
+                    />
+                  </div>
+                )}
+
+                {/* 貸出先（新規作成のみ） */}
+                {!isEditMode && (
+                  <div>
+                    <label htmlFor="borrowerNameNew" className="block text-sm font-medium text-gray-700 mb-1">
+                      貸出先 <span className="text-red-500">*</span>
+                    </label>
+                    <input
+                      id="borrowerNameNew"
+                      type="text"
+                      value={formData.borrowerName}
+                      onChange={(e) => setFormData(prev => ({ ...prev, borrowerName: e.target.value }))}
+                      placeholder="例: 田中花子"
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500"
+                      disabled={submitting}
+                    />
+                  </div>
+                )}
+
+                {/* 担当者 */}
                 <div>
                   <label htmlFor="staff" className="block text-sm font-medium text-gray-700 mb-1">
                     担当者 <span className="text-red-500">*</span>
@@ -326,27 +414,28 @@ const LoanForm: React.FC = () => {
                   />
                 </div>
 
-                <div>
-                  <label htmlFor="borrowerName" className="block text-sm font-medium text-gray-700 mb-1">
-                    貸出先名
-                  </label>
-                  <input
-                    id="borrowerName"
-                    name="borrowerName"
-                    type="text"
-                    value={formData.borrowerName}
-                    onChange={handleChange}
-                    placeholder="例: 田中花子"
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500"
-                    disabled={submitting}
-                  />
-                </div>
+                {/* 貸出先名（編集モードのみ） */}
+                {isEditMode && (
+                  <div>
+                    <label htmlFor="borrowerName" className="block text-sm font-medium text-gray-700 mb-1">
+                      貸出先名
+                    </label>
+                    <input
+                      id="borrowerName"
+                      name="borrowerName"
+                      type="text"
+                      value={formData.borrowerName}
+                      onChange={handleChange}
+                      placeholder="例: 田中花子"
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500"
+                      disabled={submitting}
+                    />
+                  </div>
+                )}
 
+                {/* 貸出日 */}
                 <div>
-                  <label
-                    htmlFor="borrowDate"
-                    className="block text-sm font-medium text-gray-700 mb-1"
-                  >
+                  <label htmlFor="borrowDate" className="block text-sm font-medium text-gray-700 mb-1">
                     貸出日 <span className="text-red-500">*</span>
                   </label>
                   <input
@@ -361,6 +450,24 @@ const LoanForm: React.FC = () => {
                   />
                 </div>
 
+                {/* 返却予定日（新規作成のみ） */}
+                {!isEditMode && (
+                  <div>
+                    <label htmlFor="expectedReturnDate" className="block text-sm font-medium text-gray-700 mb-1">
+                      返却予定日 <span className="text-gray-500 text-xs">(任意)</span>
+                    </label>
+                    <input
+                      id="expectedReturnDate"
+                      type="date"
+                      value={expectedReturnDate}
+                      onChange={(e) => setExpectedReturnDate(e.target.value)}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500"
+                      disabled={submitting}
+                    />
+                  </div>
+                )}
+
+                {/* 目的 */}
                 <div>
                   <label htmlFor="purpose" className="block text-sm font-medium text-gray-700 mb-1">
                     目的 <span className="text-red-500">*</span>
@@ -378,6 +485,7 @@ const LoanForm: React.FC = () => {
                   />
                 </div>
 
+                {/* 備考 */}
                 <div>
                   <label htmlFor="notes" className="block text-sm font-medium text-gray-700 mb-1">
                     備考
@@ -394,6 +502,7 @@ const LoanForm: React.FC = () => {
                   />
                 </div>
 
+                {/* ステータス（編集モードのみ） */}
                 {isEditMode && (
                   <div>
                     <label htmlFor="status" className="block text-sm font-medium text-gray-700 mb-1">
@@ -416,6 +525,27 @@ const LoanForm: React.FC = () => {
 
               {/* 右カラム：アイテム選択 */}
               <div className="flex flex-col h-full">
+                {/* 展示会絞り込み */}
+                <div className="mb-3">
+                  <label htmlFor="exhibitionId" className="block text-sm font-medium text-gray-700 mb-1">
+                    展示会で絞り込み <span className="text-gray-500 text-xs">(任意)</span>
+                  </label>
+                  <select
+                    id="exhibitionId"
+                    value={selectedExhibitionId}
+                    onChange={(e) => setSelectedExhibitionId(e.target.value)}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500"
+                    disabled={submitting}
+                  >
+                    <option value="">すべてのアイテムから選択</option>
+                    {exhibitions.map((ex) => (
+                      <option key={ex.id} value={ex.id}>
+                        {ex.exhibitionName} ({ex.exhibitionCode})
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
                 <label className="block text-sm font-medium text-gray-700 mb-1">
                   アイテム選択 <span className="text-red-500">*</span>
                 </label>
@@ -456,7 +586,6 @@ const LoanForm: React.FC = () => {
                       {selectedItems.map(item => (
                         <div key={item.id} className="p-2 flex justify-between items-center transition-colors hover:bg-blue-100">
                           <div className="flex items-center gap-2">
-                            {/* 選択リストのサムネイルは小さめでOK */}
                             {item.images?.[0]?.url ? (
                               <img
                                 src={item.images[0].url}
@@ -509,17 +638,12 @@ const LoanForm: React.FC = () => {
                           )
                         })
                         .map((item) => {
-                          // 貸出中かどうかの判定
                           const activeLoan = activeLoans.find(
                             (l) => l.itemId === item.id && l.status === 'borrowed'
                           )
-
-                          // 編集モードで、現在選択されているアイテム（自分自身の貸出）の場合は「貸出中」扱いしない
-                          const isSelfLoan = isEditMode && activeLoan && activeLoan.itemId === formData.itemId;
-                          const isBorrowed = !!activeLoan && !isSelfLoan;
-
-                          // 選択されているか判定
-                          const isSelected = selectedItems.some(i => i.id === item.id);
+                          const isSelfLoan = isEditMode && activeLoan && activeLoan.itemId === formData.itemId
+                          const isBorrowed = !!activeLoan && !isSelfLoan
+                          const isSelected = selectedItems.some(i => i.id === item.id)
 
                           return (
                             <div
@@ -535,7 +659,6 @@ const LoanForm: React.FC = () => {
                                 }`}
                             >
                               <div className="flex gap-3">
-                                {/* サムネイル画像 - リクエスト通り大きく表示 (w-20 h-20) */}
                                 <div className="flex-shrink-0">
                                   {item.images && item.images.length > 0 ? (
                                     <img
@@ -551,7 +674,6 @@ const LoanForm: React.FC = () => {
                                   )}
                                 </div>
 
-                                {/* テキスト情報 */}
                                 <div className="flex-1 min-w-0 flex flex-col justify-center">
                                   <div className="flex justify-between items-start">
                                     <span className={`font-medium text-base truncate ${isBorrowed ? 'text-gray-500' : 'text-gray-900'}`}>{item.itemNo}</span>
@@ -566,7 +688,6 @@ const LoanForm: React.FC = () => {
                                     )}
                                   </div>
 
-                                  {/* 貸出中情報の表示 */}
                                   {isBorrowed && activeLoan ? (
                                     <div className="text-xs text-red-600 font-medium mt-1 bg-red-50 p-1 rounded border border-red-100">
                                       担当: {activeLoan.staff} <br />
@@ -632,7 +753,7 @@ const LoanForm: React.FC = () => {
               キャンセル
             </button>
             <button type="submit" disabled={submitting} className="btn-primary">
-              {submitting ? '保存中...' : isEditMode ? '更新' : '一括作成'}
+              {submitting ? '保存中...' : isEditMode ? '更新' : '上記の内容でカードを作成する'}
             </button>
           </div>
         </form>

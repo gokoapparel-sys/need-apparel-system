@@ -30,10 +30,13 @@ import PickupPublicView from './pages/pickups/PickupPublicView'
 import PickupSessionStart from './pages/pickups/PickupSessionStart'
 import PickupScanSession from './pages/pickups/PickupScanSession'
 import ScanItem from './pages/pickups/ScanItem'
+import LoansHub from './pages/loans/LoansHub'
 import LoansList from './pages/loans/LoansList'
+import LoanCards from './pages/loans/LoanCards'
 import LoanForm from './pages/loans/LoanForm'
 import LoanDetail from './pages/loans/LoanDetail'
 import LoanSharePublicView from './pages/loans/LoanSharePublicView'
+import LoanShareAdminView from './pages/loans/LoanShareAdminView'
 import About from './pages/About'
 import PickupRankingList from './pages/pickupRankings/PickupRankingList'
 import PickupRankingDetail from './pages/pickupRankings/PickupRankingDetail'
@@ -51,6 +54,15 @@ const App: React.FC = () => {
           <Route path="/scan-item/:itemId" element={<ScanItem />} />
           {/* Public loan share view */}
           <Route path="/loan-share/:id" element={<LoanSharePublicView />} />
+          {/* Admin loan share view */}
+          <Route
+            path="/loans/share/:id"
+            element={
+              <PrivateRoute>
+                <LoanShareAdminView />
+              </PrivateRoute>
+            }
+          />
           {/* Public customer catalog */}
           <Route path="/exhibitions/:id/customer-catalog" element={<CustomerWebCatalog />} />
           {/* Public exhibition landing page */}
@@ -249,7 +261,23 @@ const App: React.FC = () => {
             path="/loans"
             element={
               <PrivateRoute>
+                <LoansHub />
+              </PrivateRoute>
+            }
+          />
+          <Route
+            path="/loans/items"
+            element={
+              <PrivateRoute>
                 <LoansList />
+              </PrivateRoute>
+            }
+          />
+          <Route
+            path="/loans/cards"
+            element={
+              <PrivateRoute>
+                <LoanCards />
               </PrivateRoute>
             }
           />

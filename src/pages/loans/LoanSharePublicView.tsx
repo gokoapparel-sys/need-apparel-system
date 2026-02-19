@@ -82,6 +82,9 @@ const LoanSharePublicView: React.FC = () => {
     })
   }
 
+  // 全体ステータス
+  const allReturned = loanItems.length > 0 && loanItems.every(li => li.loan.status === 'returned')
+
   const handleExportPDF = async () => {
     if (!loanShare || loanItems.length === 0) return
 
@@ -96,14 +99,14 @@ const LoanSharePublicView: React.FC = () => {
         }
       })
 
-      // 画像をBlob URLに変換（Base64より大幅にメモリ効率が高い）
+      // 画像をBlob URLに変換
       const { urlMap: imageBase64Map, revoke } = await convertImagesToBlobUrls(imageUrls)
 
       try {
-        // HTML生成
+        // HTML生成 (loanItemsを渡す)
         const htmlContent = generateLoanShareCatalogHTML({
           loanShare,
-          items: loanItems.map(li => li.item).filter(Boolean) as Item[], // 型互換性のためにキャスト
+          loanItems,
           imageBase64Map
         })
 
@@ -187,6 +190,11 @@ const LoanSharePublicView: React.FC = () => {
               <h1 className="text-4xl md:text-5xl font-bold tracking-tight text-white mb-2 drop-shadow-md">
                 Sample Pickup Card
               </h1>
+              {loanShare.cardName && (
+                <p className="text-xl font-semibold text-white/90 mt-1">
+                  {loanShare.cardName}
+                </p>
+              )}
               <p className="text-emerald-50 text-sm tracking-[0.2em] uppercase font-medium">
                 Official Loan Documentation
               </p>
@@ -212,6 +220,19 @@ const LoanSharePublicView: React.FC = () => {
                     </p>
                   )}
                 </div>
+                {/* 全体ステータス */}
+                <div>
+                  <span className={`inline-flex items-center px-4 py-1.5 rounded-full text-sm font-bold shadow-lg ${allReturned ? 'bg-green-100/90 text-green-800' : 'bg-yellow-100/90 text-yellow-800'}`}>
+                    {allReturned ? '✓ 返却済み' : '● 貸出中'}
+                  </span>
+                </div>
+                {/* 返却予定日 */}
+                {loanShare.expectedReturnDate && (
+                  <div>
+                    <p className="text-white/70 text-xs font-bold tracking-wider uppercase mb-1">Return By</p>
+                    <p className="text-white font-bold text-lg drop-shadow-md">{formatDate(loanShare.expectedReturnDate)}</p>
+                  </div>
+                )}
               </div>
 
               {/* 右側: 詳細スタッツ */}
@@ -254,6 +275,13 @@ const LoanSharePublicView: React.FC = () => {
                     }
                   }}
                 >
+                  {/* ステータスバッジ（右上） */}
+                  <div className="absolute top-2 right-2 z-10">
+                    <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-bold shadow ${loan.status === 'returned' ? 'bg-green-100 text-green-800' : 'bg-yellow-100 text-yellow-800'}`}>
+                      {loan.status === 'returned' ? '返却済み' : '貸出中'}
+                    </span>
+                  </div>
+
                   {item?.images && item.images.length > 0 ? (
                     <>
                       <img
@@ -291,6 +319,7 @@ const LoanSharePublicView: React.FC = () => {
                     <p className="text-xs text-gray-500 mb-1">貸出日</p>
                     <p className="text-sm text-gray-700">{formatDate(loan.borrowDate)}</p>
                   </div>
+
                 </div>
               </div>
             </div>
@@ -378,9 +407,8 @@ const LoanSharePublicView: React.FC = () => {
             )}
           </div>
         </div>
-      )
-      }
-    </div >
+      )}
+    </div>
   )
 }
 

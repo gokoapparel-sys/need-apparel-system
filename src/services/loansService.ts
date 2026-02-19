@@ -11,6 +11,7 @@ import {
   where,
   Timestamp,
   QueryConstraint,
+  deleteField,
 } from 'firebase/firestore'
 import { db } from './firebase/config'
 import { Loan } from '../types'
@@ -94,6 +95,13 @@ export const loansService = {
     await deleteDoc(docRef)
   },
 
+  // IDリストから複数の貸出を取得
+  async getLoansByIds(ids: string[]): Promise<Loan[]> {
+    const promises = ids.map(id => this.getLoan(id))
+    const results = await Promise.all(promises)
+    return results.filter(Boolean) as Loan[]
+  },
+
   // 返却処理
   async returnLoan(id: string, returnNotes?: string): Promise<void> {
     const docRef = doc(db, COLLECTION_NAME, id)
@@ -101,6 +109,17 @@ export const loansService = {
       status: 'returned',
       returnDate: Timestamp.now(),
       returnNotes: returnNotes || '',
+      updatedAt: Timestamp.now(),
+    })
+  },
+
+  // 貸出中に戻す（返却取り消し）
+  async reopenLoan(id: string): Promise<void> {
+    const docRef = doc(db, COLLECTION_NAME, id)
+    await updateDoc(docRef, {
+      status: 'borrowed',
+      returnDate: deleteField(),
+      returnNotes: '',
       updatedAt: Timestamp.now(),
     })
   },

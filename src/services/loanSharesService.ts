@@ -4,6 +4,7 @@ import {
   getDoc,
   getDocs,
   addDoc,
+  updateDoc,
   deleteDoc,
   query,
   orderBy,
@@ -42,6 +43,18 @@ export const loanSharesService = {
       updatedAt: now,
     })
     return docRef.id
+  },
+
+  // 更新
+  async updateLoanShare(
+    id: string,
+    data: Partial<Omit<LoanShare, 'id' | 'createdAt' | 'updatedAt'>>
+  ): Promise<void> {
+    const docRef = doc(db, COLLECTION_NAME, id)
+    await updateDoc(docRef, {
+      ...data,
+      updatedAt: Timestamp.now(),
+    })
   },
 
   // 削除

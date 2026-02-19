@@ -195,6 +195,9 @@ export interface LoanShare {
   borrowerCompany?: string // 貸出先会社名
   borrowerEmail?: string // 貸出先メール
   loanIds: string[] // 対象の貸出ID配列
+  cardName?: string // カード名（任意・後方互換）
+  staff?: string // 担当者
+  expectedReturnDate?: Timestamp // 返却予定日
   createdAt?: Timestamp
   updatedAt?: Timestamp
   createdBy?: string

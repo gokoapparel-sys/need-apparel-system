@@ -1,12 +1,20 @@
 import { Item, LoanShare } from '../../types'
 
+interface LoanItem {
+  loan: { status: string; borrowDate: any; returnDate?: any }
+  item: Item | null
+}
+
 interface LoanShareCatalogHTMLProps {
   loanShare: LoanShare
-  items: Item[]
+  loanItems: LoanItem[]
   imageBase64Map?: Record<string, string>
 }
 
-export function generateLoanShareCatalogHTML({ loanShare, items, imageBase64Map }: LoanShareCatalogHTMLProps): string {
+export function generateLoanShareCatalogHTML({ loanShare, loanItems, imageBase64Map }: LoanShareCatalogHTMLProps): string {
+  // 後方互換: items配列に変換
+  const items = loanItems.map(li => li.item).filter(Boolean) as Item[]
+
   const formatDate = (timestamp: any): string => {
     if (!timestamp) return ''
     let date: Date
@@ -24,20 +32,16 @@ export function generateLoanShareCatalogHTML({ loanShare, items, imageBase64Map 
     })
   }
 
-  // ページごとにアイテムを分割
-  // 全てのページにヘッダーがあるため、全ページ10アイテムずつ（5列×2段）
+  // 全体ステータス
+  const allReturned = loanItems.length > 0 && loanItems.every(li => li.loan.status === 'returned')
+  const overallStatus = allReturned ? '返却済み' : '貸出中'
+
+  // ページごとにloanItemsを分割（各アイテムのステータスを維持）
   const itemsPerPage = 10
-  const pages: Item[][] = []
-
-  for (let i = 0; i < items.length; i += itemsPerPage) {
-    pages.push(items.slice(i, i + itemsPerPage))
+  const pages: LoanItem[][] = []
+  for (let i = 0; i < loanItems.length; i += itemsPerPage) {
+    pages.push(loanItems.slice(i, i + itemsPerPage))
   }
-
-  // 最新のデザインに合わせたカラー定義
-  // Emerald-500: #10b981
-  // Teal-400: #2dd4bf
-  // Teal-500: #14b8a6
-  // Slate-700: #334155
 
   return `
     <!DOCTYPE html>
@@ -125,7 +129,7 @@ export function generateLoanShareCatalogHTML({ loanShare, items, imageBase64Map 
           padding: 15px;
           box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
         }
-        
+
         .cover-logo img {
             width: 100%;
             height: auto;
@@ -173,7 +177,7 @@ export function generateLoanShareCatalogHTML({ loanShare, items, imageBase64Map 
           font-weight: bold;
           text-shadow: 0 2px 4px rgba(0,0,0,0.1);
         }
-        
+
         .cover-client-company {
             font-size: 24px;
             margin-bottom: 40px;
@@ -242,18 +246,21 @@ export function generateLoanShareCatalogHTML({ loanShare, items, imageBase64Map 
           box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
           position: relative;
           overflow: hidden;
-          height: 310px; /* Reduced height to prevent footer overlap */
+          height: 310px;
         }
-        
+
         .item-card-header {
             border-bottom: 2px solid #e2e8f0;
             padding-bottom: 5px;
             margin-bottom: 5px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
         }
 
         .item-image {
           width: 100%;
-          height: 160px; /* Reduced height */
+          height: 160px;
           background: #f1f5f9;
           display: flex;
           align-items: center;
@@ -292,17 +299,17 @@ export function generateLoanShareCatalogHTML({ loanShare, items, imageBase64Map 
         .item-no {
           font-size: 16px;
           font-weight: bold;
-          color: #0f172a; /* Slate-900 */
+          color: #0f172a;
           letter-spacing: 0.5px;
         }
 
         .item-name {
           font-size: 11px;
           font-weight: 500;
-          color: #334155; /* Slate-700 */
+          color: #334155;
           margin-bottom: 6px;
           line-height: 1.4;
-          height: 32px; /* 2行分確保 */
+          height: 32px;
           overflow: hidden;
         }
 
@@ -316,12 +323,32 @@ export function generateLoanShareCatalogHTML({ loanShare, items, imageBase64Map 
         .field-label {
           min-width: 50px;
           font-weight: bold;
-          color: #64748b; /* Slate-500 */
+          color: #64748b;
         }
 
         .field-value {
-          color: #0f172a; /* Slate-900 */
+          color: #0f172a;
           font-weight: 500;
+        }
+
+        .status-badge-borrowed {
+          font-size: 9px;
+          font-weight: bold;
+          padding: 2px 6px;
+          border-radius: 10px;
+          background: #fef3c7;
+          color: #92400e;
+          white-space: nowrap;
+        }
+
+        .status-badge-returned {
+          font-size: 9px;
+          font-weight: bold;
+          padding: 2px 6px;
+          border-radius: 10px;
+          background: #d1fae5;
+          color: #065f46;
+          white-space: nowrap;
         }
 
         .page-footer {
@@ -344,14 +371,15 @@ export function generateLoanShareCatalogHTML({ loanShare, items, imageBase64Map 
           <div class="cover-logo">
              <div class="cover-logo-text">NEED</div>
           </div>
-          
+
           <div class="cover-title">Sample Pickup Card</div>
           <div class="cover-subtitle-en">Official Loan Documentation</div>
-          
+          ${loanShare.cardName ? `<div style="font-size: 20px; font-weight: 700; margin-bottom: 16px; opacity: 0.95; letter-spacing: 1px;">${loanShare.cardName}</div>` : ''}
+
           <div class="cover-client-name">${loanShare.borrowerName} 様</div>
           ${loanShare.borrowerCompany ? `<div class="cover-client-company">${loanShare.borrowerCompany}</div>` : ''}
-          
-          <div style="margin-top: 30px; display: flex; justify-content: center; gap: 40px;">
+
+          <div style="margin-top: 30px; display: flex; justify-content: center; gap: 20px; flex-wrap: wrap;">
              <div style="background: rgba(255,255,255,0.2); padding: 15px 30px; border-radius: 12px; border: 1px solid rgba(255,255,255,0.3);">
                 <div style="font-size: 12px; font-weight: bold; letter-spacing: 2px; margin-bottom: 5px;">TOTAL ITEMS</div>
                 <div style="font-size: 32px; font-weight: 900; text-shadow: 0 2px 4px rgba(0,0,0,0.1);">${items.length} <span style="font-size: 14px; font-weight: normal;">items</span></div>
@@ -359,6 +387,15 @@ export function generateLoanShareCatalogHTML({ loanShare, items, imageBase64Map 
              <div style="background: rgba(255,255,255,0.2); padding: 15px 30px; border-radius: 12px; border: 1px solid rgba(255,255,255,0.3);">
                 <div style="font-size: 12px; font-weight: bold; letter-spacing: 2px; margin-bottom: 5px;">DATE</div>
                 <div style="font-size: 24px; font-weight: 900; margin-top: 5px; text-shadow: 0 2px 4px rgba(0,0,0,0.1);">${formatDate(loanShare.createdAt)}</div>
+             </div>
+             ${loanShare.expectedReturnDate ? `
+             <div style="background: rgba(255,255,255,0.2); padding: 15px 30px; border-radius: 12px; border: 1px solid rgba(255,255,255,0.3);">
+                <div style="font-size: 12px; font-weight: bold; letter-spacing: 2px; margin-bottom: 5px;">RETURN BY</div>
+                <div style="font-size: 24px; font-weight: 900; margin-top: 5px; text-shadow: 0 2px 4px rgba(0,0,0,0.1);">${formatDate(loanShare.expectedReturnDate)}</div>
+             </div>` : ''}
+             <div style="background: rgba(255,255,255,0.2); padding: 15px 30px; border-radius: 12px; border: 1px solid rgba(255,255,255,0.3);">
+                <div style="font-size: 12px; font-weight: bold; letter-spacing: 2px; margin-bottom: 5px;">STATUS</div>
+                <div style="font-size: 20px; font-weight: 900; margin-top: 5px; text-shadow: 0 2px 4px rgba(0,0,0,0.1);">${overallStatus}</div>
              </div>
           </div>
         </div>
@@ -370,36 +407,40 @@ export function generateLoanShareCatalogHTML({ loanShare, items, imageBase64Map 
         <div class="pdf-page content-page">
           <div class="page-header">
             <div class="page-title">Sample Pickup Card</div>
-            <div class="page-subtitle">${loanShare.borrowerName} 様 | ${formatDate(loanShare.createdAt)}</div>
+            <div class="page-subtitle">${loanShare.borrowerName} 様 | ${formatDate(loanShare.createdAt)}${loanShare.expectedReturnDate ? ` | 返却予定: ${formatDate(loanShare.expectedReturnDate)}` : ''}</div>
           </div>
 
           <div class="items-grid">
-            ${pageItems.map(item => `
+            ${pageItems.map(loanItem => {
+              const item = loanItem.item
+              const isReturned = loanItem.loan.status === 'returned'
+              if (!item) return '<div class="item-card"><div style="padding:8px;color:#999;font-size:10px;">アイテム情報なし</div></div>'
+              return `
               <div class="item-card">
                 <div class="item-card-header">
                     <div class="item-no">${item.itemNo}</div>
+                    <span class="${isReturned ? 'status-badge-returned' : 'status-badge-borrowed'}">${isReturned ? '返却済み' : '貸出中'}</span>
                 </div>
-                
+
                 <div class="item-image">
             ${(() => {
-      if (item.images && item.images.length > 0) {
-        const imageUrl = item.images[0].url
-        const base64Image = imageBase64Map && imageBase64Map[imageUrl]
-
-        if (base64Image && (base64Image.startsWith('data:image/') || base64Image.startsWith('blob:'))) {
-          return `<img src="${base64Image}" alt="${item.name}" />`
-        } else {
-          return '<div style="color: #999; font-size: 10px;">画像なし</div>'
-        }
-      } else {
-        return '<div style="color: #999; font-size: 10px;">画像なし</div>'
-      }
-    })()}
+              if (item.images && item.images.length > 0) {
+                const imageUrl = item.images[0].url
+                const base64Image = imageBase64Map && imageBase64Map[imageUrl]
+                if (base64Image && (base64Image.startsWith('data:image/') || base64Image.startsWith('blob:'))) {
+                  return `<img src="${base64Image}" alt="${item.name}" />`
+                } else {
+                  return '<div style="color: #999; font-size: 10px;">画像なし</div>'
+                }
+              } else {
+                return '<div style="color: #999; font-size: 10px;">画像なし</div>'
+              }
+            })()}
                   <div class="watermark">NEED</div>
                 </div>
-                
-                <div class="item-name">${item.name.replace(/[\s\u3000（(]/g, (match) => match === ' ' || match === '　' ? '' : '<br />' + match)}</div>
-                
+
+                <div class="item-name">${item.name.replace(/[\s\u3000（(]/g, (match: string) => match === ' ' || match === '　' ? '' : '<br />' + match)}</div>
+
                 <div class="item-field">
                   <span class="field-label">混率:</span>
                   <span class="field-value">${item.composition || '-'}</span>
@@ -413,7 +454,7 @@ export function generateLoanShareCatalogHTML({ loanShare, items, imageBase64Map 
                   <span class="field-value">${item.referencePrice ? `¥${item.referencePrice.toLocaleString()}` : (item.dollarPrice ? `$${item.dollarPrice}` : '-')}</span>
                 </div>
               </div>
-            `).join('')}
+            `}).join('')}
           </div>
 
           <div class="page-footer">
