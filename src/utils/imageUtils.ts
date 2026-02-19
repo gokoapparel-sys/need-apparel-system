@@ -122,25 +122,35 @@ export async function convertImagesToBlobUrls(
 
     await Promise.all(
       batch.map(async (url) => {
-        try {
-          const storagePath = extractStoragePathFromUrl(url)
-          if (!storagePath) throw new Error('Invalid Firebase Storage URL')
+        const MAX_RETRIES = 2
+        let lastError: any = null
+        for (let attempt = 0; attempt <= MAX_RETRIES; attempt++) {
+          try {
+            const storagePath = extractStoragePathFromUrl(url)
+            if (!storagePath) throw new Error('Invalid Firebase Storage URL')
 
-          const imageRef = ref(storage, storagePath)
-          const blob = await withTimeout(getBlob(imageRef), 15000)
-          const blobUrl = URL.createObjectURL(blob)
-          urlMap[url] = blobUrl
-          blobUrls.push(blobUrl)
-          successCount++
-        } catch (error: any) {
-          if (error?.message === 'Timeout') {
-            console.error(`画像変換タイムアウト: ${url}`)
-          } else {
-            console.error(`画像変換失敗: ${url}`, error)
+            const imageRef = ref(storage, storagePath)
+            const blob = await withTimeout(getBlob(imageRef), 20000)
+            const blobUrl = URL.createObjectURL(blob)
+            urlMap[url] = blobUrl
+            blobUrls.push(blobUrl)
+            successCount++
+            return
+          } catch (error: any) {
+            lastError = error
+            if (attempt < MAX_RETRIES) {
+              console.warn(`画像変換リトライ (${attempt + 1}/${MAX_RETRIES}): ${url}`)
+              await new Promise(resolve => setTimeout(resolve, 500 * (attempt + 1)))
+            }
           }
-          errorCount++
-          urlMap[url] = placeholderImage
         }
+        if (lastError?.message === 'Timeout') {
+          console.error(`画像変換タイムアウト (${MAX_RETRIES + 1}回試行): ${url}`)
+        } else {
+          console.error(`画像変換失敗: ${url}`, lastError)
+        }
+        errorCount++
+        urlMap[url] = placeholderImage
       })
     )
   }
