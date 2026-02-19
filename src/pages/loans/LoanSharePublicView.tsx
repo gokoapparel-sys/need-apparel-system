@@ -6,7 +6,7 @@ import { itemsService } from '../../services/itemsService'
 import { LoanShare, Loan, Item } from '../../types'
 import { generateLoanShareCatalogHTML } from '../../utils/pdfGenerators/loanShareCatalogHTML'
 import { generatePDFFromHTML } from '../../utils/pdfGenerators/htmlToPdfGenerator'
-import { convertImagesToBase64 } from '../../utils/imageUtils'
+import { convertImagesToBlobUrls } from '../../utils/imageUtils'
 
 interface LoanItemData {
   loan: Loan
@@ -96,19 +96,23 @@ const LoanSharePublicView: React.FC = () => {
         }
       })
 
-      // 画像をBase64に変換
-      const imageBase64Map = await convertImagesToBase64(imageUrls)
+      // 画像をBlob URLに変換（Base64より大幅にメモリ効率が高い）
+      const { urlMap: imageBase64Map, revoke } = await convertImagesToBlobUrls(imageUrls)
 
-      // HTML生成
-      const htmlContent = generateLoanShareCatalogHTML({
-        loanShare,
-        items: loanItems.map(li => li.item).filter(Boolean) as Item[], // 型互換性のためにキャスト
-        imageBase64Map
-      })
+      try {
+        // HTML生成
+        const htmlContent = generateLoanShareCatalogHTML({
+          loanShare,
+          items: loanItems.map(li => li.item).filter(Boolean) as Item[], // 型互換性のためにキャスト
+          imageBase64Map
+        })
 
-      // PDF生成 & ダウンロード
-      const filename = `SampleLoanCard_${loanShare.borrowerName}.pdf`
-      await generatePDFFromHTML(htmlContent, filename, 'landscape')
+        // PDF生成 & ダウンロード
+        const filename = `SampleLoanCard_${loanShare.borrowerName}.pdf`
+        await generatePDFFromHTML(htmlContent, filename, 'landscape')
+      } finally {
+        revoke()
+      }
 
     } catch (error) {
       console.error('PDF export failed:', error)

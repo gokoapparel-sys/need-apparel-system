@@ -9,7 +9,7 @@ import { TagLabelPDF } from '../../utils/pdfGenerators/tagLabelPDF'
 import { generatePDFFromHTML } from '../../utils/pdfGenerators/htmlToPdfGenerator'
 import { generateStaffCatalogHTML } from '../../utils/pdfGenerators/staffCatalogHTML'
 import { generateCustomerCatalogHTML } from '../../utils/pdfGenerators/customerCatalogHTML'
-import { convertImagesToBase64 } from '../../utils/imageUtils'
+import { convertImagesToBlobUrls } from '../../utils/imageUtils'
 
 const ExhibitionDetail: React.FC = () => {
   const { id } = useParams<{ id: string }>()
@@ -131,42 +131,42 @@ const ExhibitionDetail: React.FC = () => {
       })
       console.log('画像URL数:', imageUrls.length)
 
-      // 画像をbase64に変換
+      // 画像をBlob URLに変換（Base64より大幅にメモリ効率が高い）
       console.log('画像変換開始...')
       let imageBase64Map: Record<string, string> = {}
+      let revokeImages = () => {}
 
       try {
-        imageBase64Map = await convertImagesToBase64(imageUrls)
+        const { urlMap, revoke } = await convertImagesToBlobUrls(imageUrls)
+        imageBase64Map = urlMap
+        revokeImages = revoke
         console.log('画像変換完了')
-
-        // 画像変換の失敗を検出
-        const failedImages = Object.values(imageBase64Map).filter(base64 => !base64.startsWith('data:image/')).length
-        if (failedImages > 0) {
-          console.warn(`⚠️ ${failedImages}件の画像がプレースホルダーで表示されます。`)
-          console.warn('詳細はFIREBASE_STORAGE_CORS_SETUP.mdを参照してください。')
-        }
       } catch (error) {
         console.error('画像変換で予期しないエラー:', error)
         console.warn('全ての画像をスキップしてPDFを生成します')
       }
 
-      // HTMLを生成
-      console.log('HTML生成開始...')
-      const htmlContent = generateStaffCatalogHTML({
-        exhibition,
-        items: catalogItems,
-        imageBase64Map
-      })
-      console.log('HTML生成完了')
+      try {
+        // HTMLを生成
+        console.log('HTML生成開始...')
+        const htmlContent = generateStaffCatalogHTML({
+          exhibition,
+          items: catalogItems,
+          imageBase64Map
+        })
+        console.log('HTML生成完了')
 
-      // PDF生成とダウンロード
-      console.log('PDF生成開始...')
-      await generatePDFFromHTML(
-        htmlContent,
-        `${exhibition.exhibitionCode}_管理者用カタログ.pdf`,
-        'landscape'
-      )
-      console.log('✅ PDF生成完了')
+        // PDF生成とダウンロード
+        console.log('PDF生成開始...')
+        await generatePDFFromHTML(
+          htmlContent,
+          `${exhibition.exhibitionCode}_管理者用カタログ.pdf`,
+          'landscape'
+        )
+        console.log('✅ PDF生成完了')
+      } finally {
+        revokeImages()
+      }
     } catch (error: any) {
       console.error('PDF出力エラー:', error)
       alert(`PDF出力に失敗しました: ${error?.message || error}`)
@@ -199,42 +199,42 @@ const ExhibitionDetail: React.FC = () => {
       })
       console.log('画像URL数:', imageUrls.length)
 
-      // 画像をbase64に変換
+      // 画像をBlob URLに変換（Base64より大幅にメモリ効率が高い）
       console.log('画像変換開始...')
       let imageBase64Map: Record<string, string> = {}
+      let revokeImages = () => {}
 
       try {
-        imageBase64Map = await convertImagesToBase64(imageUrls)
+        const { urlMap, revoke } = await convertImagesToBlobUrls(imageUrls)
+        imageBase64Map = urlMap
+        revokeImages = revoke
         console.log('画像変換完了')
-
-        // 画像変換の失敗を検出
-        const failedImages = Object.values(imageBase64Map).filter(base64 => !base64.startsWith('data:image/')).length
-        if (failedImages > 0) {
-          console.warn(`⚠️ ${failedImages}件の画像がプレースホルダーで表示されます。`)
-          console.warn('詳細はFIREBASE_STORAGE_CORS_SETUP.mdを参照してください。')
-        }
       } catch (error) {
         console.error('画像変換で予期しないエラー:', error)
         console.warn('全ての画像をスキップしてPDFを生成します')
       }
 
-      // HTMLを生成
-      console.log('HTML生成開始...')
-      const htmlContent = generateCustomerCatalogHTML({
-        exhibition,
-        items: catalogItems,
-        imageBase64Map
-      })
-      console.log('HTML生成完了')
+      try {
+        // HTMLを生成
+        console.log('HTML生成開始...')
+        const htmlContent = generateCustomerCatalogHTML({
+          exhibition,
+          items: catalogItems,
+          imageBase64Map
+        })
+        console.log('HTML生成完了')
 
-      // PDF生成とダウンロード
-      console.log('PDF生成開始...')
-      await generatePDFFromHTML(
-        htmlContent,
-        `${exhibition.exhibitionCode}_お客様用カタログ.pdf`,
-        'landscape'
-      )
-      console.log('✅ PDF生成完了')
+        // PDF生成とダウンロード
+        console.log('PDF生成開始...')
+        await generatePDFFromHTML(
+          htmlContent,
+          `${exhibition.exhibitionCode}_お客様用カタログ.pdf`,
+          'landscape'
+        )
+        console.log('✅ PDF生成完了')
+      } finally {
+        revokeImages()
+      }
     } catch (error: any) {
       console.error('PDF出力エラー:', error)
       alert(`PDF出力に失敗しました: ${error?.message || error}`)

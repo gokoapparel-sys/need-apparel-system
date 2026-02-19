@@ -334,7 +334,7 @@ export function generateStaffCatalogHTML({ exhibition, items, imageBase64Map }: 
         const imageUrl = item.images[0].url
         const base64Image = imageBase64Map && imageBase64Map[imageUrl]
 
-        if (base64Image && base64Image.startsWith('data:image/')) {
+        if (base64Image && (base64Image.startsWith('data:image/') || base64Image.startsWith('blob:'))) {
           return `<img src="${base64Image}" alt="${item.name}" />`
         } else {
           console.warn('画像データが見つかりません:', item.itemNo, imageUrl)

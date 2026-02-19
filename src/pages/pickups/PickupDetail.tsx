@@ -6,7 +6,7 @@ import { itemsService } from '../../services/itemsService'
 import { Pickup, Item } from '../../types'
 import { generatePickupCatalogHTML } from '../../utils/pdfGenerators/pickupCatalogHTML'
 import { generatePDFFromHTML } from '../../utils/pdfGenerators/htmlToPdfGenerator'
-import { convertImagesToBase64 } from '../../utils/imageUtils'
+import { convertImagesToBlobUrls } from '../../utils/imageUtils'
 
 const PickupDetail: React.FC = () => {
   const { id } = useParams<{ id: string }>()
@@ -112,25 +112,29 @@ const PickupDetail: React.FC = () => {
 
       console.log('画像URL数:', imageUrls.length)
 
-      // 画像をbase64に変換
-      const imageBase64Map = await convertImagesToBase64(imageUrls)
+      // 画像をBlob URLに変換
+      const { urlMap: imageBase64Map, revoke } = await convertImagesToBlobUrls(imageUrls)
 
       console.log('画像変換完了')
 
-      // HTMLを生成
-      const htmlContent = generatePickupCatalogHTML({
-        pickup,
-        items,
-        imageBase64Map
-      })
+      try {
+        // HTMLを生成
+        const htmlContent = generatePickupCatalogHTML({
+          pickup,
+          items,
+          imageBase64Map
+        })
 
-      console.log('HTML生成完了')
+        console.log('HTML生成完了')
 
-      // PDFを生成してダウンロード
-      const filename = `ピックアップリスト_${pickup.pickupCode}_${pickup.customerName}.pdf`
-      await generatePDFFromHTML(htmlContent, filename, 'landscape')
+        // PDFを生成してダウンロード
+        const filename = `ピックアップリスト_${pickup.pickupCode}_${pickup.customerName}.pdf`
+        await generatePDFFromHTML(htmlContent, filename, 'landscape')
 
-      console.log('=== PDF出力完了 ===')
+        console.log('=== PDF出力完了 ===')
+      } finally {
+        revoke()
+      }
     } catch (error) {
       console.error('PDF出力エラー:', error)
       alert('PDF出力に失敗しました')

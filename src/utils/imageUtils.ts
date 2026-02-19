@@ -98,6 +98,63 @@ function withTimeout<T>(promise: Promise<T>, timeoutMs: number): Promise<T> {
 }
 
 /**
+ * 複数の画像URLをBlob URLに変換（Base64より大幅にメモリ効率が高い）
+ * 使用後は必ず revoke() を呼び出してメモリを解放すること
+ */
+export async function convertImagesToBlobUrls(
+  imageUrls: string[]
+): Promise<{ urlMap: Record<string, string>; revoke: () => void }> {
+  console.log('=== 画像変換開始 (Blob URL) ===')
+  console.log('変換する画像数:', imageUrls.length)
+
+  const urlMap: Record<string, string> = {}
+  const blobUrls: string[] = []
+  const placeholderImage = generatePlaceholderImage()
+  let successCount = 0
+  let errorCount = 0
+
+  const storage = getStorage()
+  const BATCH_SIZE = 10
+
+  for (let i = 0; i < imageUrls.length; i += BATCH_SIZE) {
+    const batch = imageUrls.slice(i, i + BATCH_SIZE)
+    console.log(`バッチ処理中: ${i + 1}〜${Math.min(i + BATCH_SIZE, imageUrls.length)} / ${imageUrls.length}`)
+
+    await Promise.all(
+      batch.map(async (url) => {
+        try {
+          const storagePath = extractStoragePathFromUrl(url)
+          if (!storagePath) throw new Error('Invalid Firebase Storage URL')
+
+          const imageRef = ref(storage, storagePath)
+          const blob = await withTimeout(getBlob(imageRef), 15000)
+          const blobUrl = URL.createObjectURL(blob)
+          urlMap[url] = blobUrl
+          blobUrls.push(blobUrl)
+          successCount++
+        } catch (error: any) {
+          if (error?.message === 'Timeout') {
+            console.error(`画像変換タイムアウト: ${url}`)
+          } else {
+            console.error(`画像変換失敗: ${url}`, error)
+          }
+          errorCount++
+          urlMap[url] = placeholderImage
+        }
+      })
+    )
+  }
+
+  console.log('=== 画像変換完了 ===')
+  console.log('成功:', successCount, '/ 失敗:', errorCount)
+
+  return {
+    urlMap,
+    revoke: () => blobUrls.forEach(blobUrl => URL.revokeObjectURL(blobUrl)),
+  }
+}
+
+/**
  * 複数の画像URLをbase64に変換
  */
 export async function convertImagesToBase64(

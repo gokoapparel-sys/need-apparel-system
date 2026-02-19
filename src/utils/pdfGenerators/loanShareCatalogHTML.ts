@@ -386,7 +386,7 @@ export function generateLoanShareCatalogHTML({ loanShare, items, imageBase64Map 
         const imageUrl = item.images[0].url
         const base64Image = imageBase64Map && imageBase64Map[imageUrl]
 
-        if (base64Image && base64Image.startsWith('data:image/')) {
+        if (base64Image && (base64Image.startsWith('data:image/') || base64Image.startsWith('blob:'))) {
           return `<img src="${base64Image}" alt="${item.name}" />`
         } else {
           return '<div style="color: #999; font-size: 10px;">画像なし</div>'
